@@ -1,0 +1,66 @@
+body {
+    background-color: gray;
+    background-image:url("https://foursouls.com/wp-content/uploads/2021/10/MonsterCardBack-308x420.png") ;
+    background-size:100%;
+    
+    
+}
+
+header{
+    border-bottom: solid black;
+    margin-bottom: 20px;
+    color: white;
+    background-color: bone ;
+    padding: 0px;
+    text-align: center;
+}
+
+
+.gameStatus {
+    display: flex;
+    gap: 20px;
+    color: white;
+}
+
+.memoryGrid {
+    width: 100%;
+    display: grid;
+    margin-top: 50px;
+    grid-template-columns: auto auto auto auto;
+    /* border: solid black; */
+    justify-content: center;
+    transition: 0.5s;
+}
+
+.memoryCard {
+    width: 100px;
+    height: 135px ;
+    background-color: #ccc;
+    display: inline-block;
+    margin: 5px;
+    cursor: block;
+}
+
+.memoryCard img {
+   transition: 0.5s;
+   width: 100%;
+   object-fit: cover;
+
+
+    
+}
+
+.memoryCard img.flip {
+    width: 100%;
+
+}
+
+.memoryCard img:hover{
+    cursor: pointer;
+
+}
+
+.memoryCard.disable {
+    pointer-events: none;
+    
+}

@@ -1,0 +1,52 @@
+body {
+    display: flex;
+    flex-direction: column;
+    font-family: sans-serif,serif
+}
+
+form {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    background-color: bisque;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    
+}
+
+.card {
+    height: 100vh;
+    background: #ffff;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+header {
+    width: 100%;
+    background-color: gray;
+    color: white;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.favoriteList {
+    width: 100%;
+}
+
+table {
+    width: 100%;
+    margin: 20px;
+
+}
+
+table tbody tr, table thead th {
+    width: 25%;
+    font-size: 15px;
+    text-align: center;
+}
+
+td {
+    text-align: center;
+}
+
+

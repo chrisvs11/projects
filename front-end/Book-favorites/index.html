@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Favorite Book List</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <header><h1>Favorite Book List</h1></header>
+        <div class = "card">
+            <div class = "new-book-section">
+                <h3>New Book Information</h3>
+                <form action="submit">
+                    <div class="formContainer">
+                        <label for="title">Title:</label>
+                        <input type="text" name="title" id="title">
+                    </div>
+                    <div class="formContainer">
+                        <label for="author">Author:</label>
+                        <input type="text" name="author" id="author">
+                    </div>
+                    <div class="formContainer">
+                        <label for="isbn">ISBN:</label>
+                        <input type="text" name="isbn" id="isbn">
+                    </div>
+                    <div>
+                        <input type="submit" name="submit" id="submit" value="Add new Book">
+                    </div>
+            </div>
+            </form>
+            <h2>List of Favorite Books</h2>
+            <div class = "favoriteList">
+                <table>
+                    <thead>
+                        <th>Author</th>
+                        <th>Title</th>
+                        <th>ISBN</th>
+                        <th id="delete" hidden>Delete Button</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+    
+    
+            <div>
+                <button id="saveList">Save Favorites</button>
+                <button id="loadList">Load Favorites</button>
+            </div>
+        </div>
+
+        
+       <script src="index.js"></script>
+    </body>
+</html>
