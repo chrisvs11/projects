@@ -1,0 +1,22 @@
+main, div{
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    align-items: center;
+    justify-content: space-around;
+}
+
+div {
+    gap: 0px;
+    margin: 0px;
+}
+
+select {
+    width: 100px;
+    height: 25px;
+   
+}
+
+body{
+    font-family: sans-serif;
+}
