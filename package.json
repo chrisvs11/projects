@@ -8,5 +8,11 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@huggingface/inference": "^2.8.0",
+    "@langchain/community": "^0.2.32",
+    "@langchain/core": "^0.2.31",
+    "langchain": "^0.2.18"
+  }
 }
