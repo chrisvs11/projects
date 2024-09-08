@@ -1,6 +1,9 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import promptSynch from "prompt-sync"
+
+const prompt = promptSynch()
 
 require("dotenv").config()
 
@@ -29,4 +32,7 @@ async function translateFunction(language:string, text:string){
   }
 }
 
-translateFunction("Spanish","Hello")
+const language = prompt("What language would you like to make the translation to? ")
+const text = prompt("What text do you like to translate? ")
+
+translateFunction(language,text)
