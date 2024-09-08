@@ -1,1 +1,0 @@
-This ai will help you to translate some text to a define language using the open ai API.
