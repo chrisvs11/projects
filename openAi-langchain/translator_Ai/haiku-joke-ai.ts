@@ -1,12 +1,14 @@
-import promptSynch from "prompt-sync";
+import promptSync from "prompt-sync";
 
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 
 import { ChatOpenAI } from "@langchain/openai";
 
+import {StringOutputParser} from "@langchain/core/output_parsers"
+
 require("dotenv").config();
 
-const prompt = promptSynch();
+const prompt = promptSync();
 
 const tellJoke = async (word:string) => {
 
@@ -20,7 +22,9 @@ const tellJoke = async (word:string) => {
     "You are a haiku comedian, tell a haiku joke base on the following word {input}"
   );
 
-  const chain = promptTemplate.pipe(model);
+  const parser = new StringOutputParser()
+
+  const chain = promptTemplate.pipe(model).pipe(parser);
 
   const response = await chain.invoke({
     input:`${word}`
@@ -28,7 +32,7 @@ const tellJoke = async (word:string) => {
 
   
 
-  console.log(`\n${response.content}`)
+  console.log(`\n${response}`)
   
 }
 
