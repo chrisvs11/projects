@@ -1,12 +1,10 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 
+require("dotenv").config()
 
-
-const model:ChatOpenAI = new ChatOpenAI({ model: "gpt-4", apiKey: process.env.OPEN_AI_KEY});
-
+const model:ChatOpenAI = new ChatOpenAI({ model: "gpt-4", apiKey:process.env.OPEN_AI_KEY});
 const systemTemplate = "Translate the following into {language}"
 
 const promptTemplate = ChatPromptTemplate.fromMessages([
@@ -31,4 +29,4 @@ async function translateFunction(language:string, text:string){
   }
 }
 
-translateFunction("italian","the child is running away with a pizza on his legs")
+translateFunction("Spanish","Hello")
