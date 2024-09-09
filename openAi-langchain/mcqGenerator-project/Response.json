@@ -1,0 +1,32 @@
+{
+  "1":{
+    "mcq":"multiple choice question",
+    "options":{
+      "A": " choice here",
+      "B": " choice here",
+      "C": " choice here",
+      "D": " choice here"
+    },
+    "correct":" correct answer letter"
+    },
+  "2":{
+    "mcq":"multiple choice question",
+    "options":{
+      "A": " choice here",
+      "B": " choice here",
+      "C": " choice here",
+      "D": " choice here"
+    },
+    "correct":" correct answer letter"
+    },
+  "3":{
+    "mcq":"multiple choice question letter",
+    "options":{
+      "A": " choice here",
+      "B": " choice here",
+      "C": " choice here",
+      "D": " choice here"
+  },
+    "correct":" correct answer"
+  }
+}
