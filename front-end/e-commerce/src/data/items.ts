@@ -1,0 +1,151 @@
+export interface SellingItem {
+    productImage:string,
+    productPrice:number,
+    productName:string,
+    tags:string[],
+    id:number
+    category:string
+}
+
+export const Inventory:SellingItem[] = [
+  {
+    id:1,
+    productImage:"https://www.wickedclothes.com/cdn/shop/files/i-love-board-games-shirt-1.png?v=1692399614&width=1445",
+    productName:"Boardgames T-shirt",
+    productPrice:62.00,
+    tags:["t-shirt", "boardgames"],
+    category:"T-shirt"
+  },
+  {
+    id:2,
+    productImage:"https://unstablegames.com/cdn/shop/files/Bitch-Im-Fabulous-purple-t-shirt-teeturtle-full-2.jpg?v=1706184789&width=360",
+    productName:"Faboulus T-shirt",
+    productPrice:58.00,
+    tags:["unicorns", "boardgames", "t-shirt"],
+    category:"T-shirt"
+    
+    
+  },
+  {
+    id:3,
+    productImage:"https://lh5.googleusercontent.com/proxy/yhKlPPyUZN-F3e7Z5kmO2vJ1GniK9UVHS2tGeA5MzDWE6gczUoitrHWgjN0XH0HZQjEMJapcXL8a9fdXGKyaKw7mWIOE--cOlCTOoraFkwxG2QiJnNMmzTJm3TcYhsSBarAtU18yZidoEg",
+    productName:"Sagrada Shoes",
+    productPrice:50.00,
+    tags:["boardgames", "sagrada", "shoes"],
+    category:"Shoes"
+  },
+  {
+    id:4,
+    productImage:"https://maestromedia.com/cdn/shop/files/Image4_5000x.png?v=1695064502",
+    productName:"Ascent Isaac Hoodie",
+    productPrice:75.00,
+    tags:["hoodie", "sweeter", "isaac"],
+    category:"Sweeter"
+  },
+  {
+    id:5,
+    productImage:"https://maestromedia.com/cdn/shop/products/Beaniespinkandblack_1_400x.jpg?v=1636996855",
+    productName:"Binding Isaac Beanies",
+    productPrice:25.00,
+    tags:["beanies", "isaac"],
+    category:"Beanies"
+  },
+  {
+    id:6,
+    productImage:"data:image/jpeg;base64,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",
+    productName:"Bloodborne Hunter Pop",
+    productPrice:15.00,
+    tags:["bloodborne", "pop"],
+    category:"Pop"
+  },
+  {
+    id:7,
+    productImage:"https://cdn.tzy.li/tzy/previews/images/002/255/347/108/original/bloodborne-merch-clothing.jpg?1646814657",
+    productName:"Bloodborne T-shirt",
+    productPrice:60.00,
+    tags:["bloodborne", "t-shirt"],
+    category:"T-shirt"
+  },
+  {
+    id:8,
+    productImage:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZIrXGwBhdzUyMhRZx5Z2pPhaGMqvzrRu6rg&s",
+    productName:"Bloodborne watch",
+    productPrice:160.00,
+    tags:["bloodborne", "watch"],
+    category:"Watch"
+  },
+  {
+    id:9,
+    productImage:"https://www.fangamer.com/cdn/shop/files/product_ds_abysswalker_itemview_new_360x360.png?v=1691626663",
+    productName:"Dark souls T-shirt",
+    productPrice:60.00,
+    tags:["dark souls", "t-shirt"],
+    category:"T-shirt"
+  },
+  {
+    id:10,
+    productImage:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMeax0ib4izjpFaIaFJJarIbVXzd4OMvS5Ig&s",
+    productName:"Dark souls sweeter",
+    productPrice:120.00,
+    tags:["dark souls", "sweeter"],
+    category:"Sweeter"
+  },
+  {
+    id:11,
+    productImage:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYywJ2W16Rh2zPJ4xgA6TOJdnosuD1QHzALQ&s",
+    productName:"Chloranthy Ring",
+    productPrice:20.00,
+    tags:["dark souls", "rings"],
+    category:"Rings"
+  },
+  {
+    id:12,
+    productImage:"data:image/jpeg;base64,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",
+    productName:"Havel´s Ring",
+    productPrice:20.00,
+    tags:["dark souls", "rings"],
+    category:"Rings"
+  },
+  {
+    id:13,
+    productImage:"https://darksouls.wiki.fextralife.com/file/Dark-Souls/4007.png",
+    productName:"Spell Stoneplate Ring",
+    productPrice:25.00,
+    tags:["dark souls", "rings"],
+    category:"Rings"
+  },
+  {
+    id:14,
+    productImage:"https://darksouls.wiki.fextralife.com/file/Dark-Souls/4036.png",
+    productName:"Blue Tearstone Ring",
+    productPrice:30.00,
+    tags:["dark souls", "rings"],
+    category:"Rings"
+  },
+  {
+    id:15,
+    productImage:"https://darksouls.wiki.fextralife.com/file/Dark-Souls/4015.png",
+    productName:"Bellowing Dragoncrest Ring",
+    productPrice:50.00,
+    tags:["dark souls", "rings"],
+    category:"Rings"
+  },
+  {
+    id:16,
+    productImage:"https://darksouls.wiki.fextralife.com/file/Dark-Souls/4039.png",
+    productName:"Lingering Dragoncrest Ring",
+    productPrice:50.00,
+    tags:["dark souls", "rings"],
+    category:"Rings"
+  },
+ 
+]
+
+export const maxValue = Inventory.reduce((prev,cur) => {
+  if(prev.productPrice > cur.productPrice) {
+    return prev
+  } else {
+    return cur
+  }
+})
+

@@ -1,0 +1,1 @@
+export type PagesSwitch = "shopping" | "cart" | "login" |"other"
