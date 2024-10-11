@@ -1,0 +1,8 @@
+.tile {
+    background-color: black;
+    background-size: contain;
+    image-rendering: pixelated;
+    filter:hue-rotate(90deg);
+    transition:0.5s linear
+}
+
