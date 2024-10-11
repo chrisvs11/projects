@@ -1,5 +1,0 @@
-setup.py
-Generative_AI_AnsiAssistant.egg-info/PKG-INFO
-Generative_AI_AnsiAssistant.egg-info/SOURCES.txt
-Generative_AI_AnsiAssistant.egg-info/dependency_links.txt
-Generative_AI_AnsiAssistant.egg-info/top_level.txt
