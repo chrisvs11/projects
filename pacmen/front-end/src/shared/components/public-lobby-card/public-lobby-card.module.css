@@ -1,0 +1,32 @@
+.lobby_info_card {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border: 2px solid black;
+    height: 60px;
+    border-radius: 8px; 
+    margin: 10px;
+}
+
+.btn3 {
+    text-transform: uppercase;
+    transition: 0.5s;
+}
+
+.btn3:hover {
+    background-color: yellowgreen;
+    scale: 1.2;
+}
+
+.image {
+    height:40px;
+
+}
+
+.lobbyInfo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100px;
+}
+
