@@ -9,14 +9,10 @@ import FirebaseService from "@/shared/services/firebase-service";
 import {
   Button,
   CollectionNames,
-  Direction,
   Game,
   Lobby,
   MapLayout,
   MemberCard,
-  useLobbyId,
-  useLobbyJoinMutation,
-  useLobbyLeaveMutation,
   useTimer,
 } from "@/shared";
 
@@ -28,10 +24,11 @@ import { useUsername } from "@/shared/hooks/username.hook";
 
 import { useRouter } from "next/navigation";
 
-import { useGameCreateMutation } from "@/shared/hooks/mutate-game.hook";
-
-import { Unsubscribe } from "firebase/firestore";
-
+import {
+  useGameCreateMutation,
+  useLobbyJoinMutation,
+  useLobbyLeaveMutation,
+} from "@/shared/services/tanstack-query";
 
 const firebaseService = new FirebaseService();
 
@@ -39,12 +36,12 @@ const WAITING_TIME: number = 120;
 
 export default function Page({ params }: { params: { lobbyId: string } }) {
   const [currentLobby, setCurrentLobby] = useState<Lobby>();
-  const {timer,startTimer, clearTimer} = useTimer(WAITING_TIME)
+  const { timer, startTimer, clearTimer } = useTimer(WAITING_TIME);
   const [gameMap, setGameMap] = useState<GameMap>();
   const [loading, setLoading] = useState<boolean>(true);
   const { username: currentUsername } = useUsername();
-  const { setLobbyId, lobbyId } = useLobbyId();
   const router = useRouter();
+
   const { mutate: leaveLobby } = useLobbyLeaveMutation({
     onSuccess: () => {
       console.log(`user ${currentUsername} leave the lobby`);
@@ -53,25 +50,27 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
       console.error("Error exiting the lobby");
     },
   });
+
+  const {mutate:joinLobby} = useLobbyJoinMutation({
+    onSuccess:() => {
+      console.log("added npc")
+    },
+    onError:() => {
+      console.error("Error adding npc")
+    }
+
+  })
+
   const { mutate: mutateGame } = useGameCreateMutation({
     onSuccess: (data: Game) => {
       console.log("Game created");
-      router.push(`${params.lobbyId}/game/${data.uuid}`);
+      router.push(`${params.lobbyId}/game/${data.id}`);
     },
     onError: () => {
       console.error("Error creating the game");
-      setLoading(true)
+      router.push("404");
     },
   });
-
-  const {mutate: joinLobby} = useLobbyJoinMutation({
-    onSuccess: () => {
-      console.log("Member added successfully")
-    },
-    onError: () => {
-      console.log("Error adding member")
-    }
-  })
 
   async function fetchMap() {
     try {
@@ -88,48 +87,43 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
     }
   }
 
-  const selectNpc = (lobby:Lobby):string|null => {
-    
-    const npcNames: string[] = ["blinky", "pinky", "inky", "clyde"];
-    let searchAll: boolean = false;
-    let index: number = 0;
+  const getNpcName = (): string | null => {
+    if (!currentLobby) return null;
 
-    while (!searchAll) {
-      const currentNPC: string = npcNames[index];
-      const nameIndex = lobby.members.findIndex(
-        (member) => member.username === currentNPC
+    const {members,maxPlayers} = currentLobby
+
+    if (members.length >= maxPlayers) return null;
+
+    const npcNames: string[] = ["blinky", "pinky", "inky", "clyde"];
+    let nameFound: boolean = false;
+    let index: number = 0;
+    while (!nameFound) {
+      const currentName: string = npcNames[index];
+      const nameIndex = currentLobby!.members.findIndex(
+        (member) => member.username === currentName
       );
       if (nameIndex < 0) {
-        searchAll = true;
+        nameFound = true;
       } else {
         index++;
       }
 
       if (index >= npcNames.length) {
-        searchAll = true;
+        nameFound = true;
         console.log("No NPC left to add");
         return null;
       }
     }
-    return npcNames[index]
+
+    return npcNames[index];
+  };
+
+  const addNPC = () => {
+    const npcName = getNpcName()
+    if(npcName) joinLobby({username:npcName,lobbyId:params.lobbyId})
   }
 
-  const AddNPC = async () => {
 
-    try {
-      
-      if(!currentLobby) return
-      
-      if(currentLobby.members.length >= currentLobby.maxPlayers) return 
-
-      const npcName:string|null = selectNpc(currentLobby)
-
-      if(npcName)  joinLobby({lobbyId:currentLobby.id,username:npcName})
-
-    } catch (e) {
-      console.error
-    }
-  };
 
   const exitLobby = (username: string, lobbyId: string) => {
     leaveLobby({ username, lobbyId });
@@ -137,37 +131,25 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   };
 
   const startGame = () => {
-    mutateGame({ lobbyId });
+    mutateGame({ lobbyId: params.lobbyId });
   };
 
   useEffect(() => {
     fetchMap();
-    setLobbyId(currentLobby?.id!);
   }, [currentLobby]);
 
-  const getWebSocket = (): Unsubscribe|null => {
-    try{
-      const { unsubscribe } = firebaseService.getRealTimeDocument(
-        CollectionNames.LOBBIES,
-        params.lobbyId,
-        (data) => setCurrentLobby(data)
-      );
-
-      return unsubscribe
-    } catch(e) {
-      console.error("Error: ", e)
-      return null
-    }
-  }
-
   useEffect(() => {
-    
-    const unsubscribe:Unsubscribe|null = getWebSocket()
+    const { unsubscribe } = firebaseService.getRealTimeDocument(
+      CollectionNames.LOBBIES,
+      params.lobbyId,
+      (data) => setCurrentLobby(data)
+    );
+
     startTimer();
     fetchMap();
 
     return () => {
-      if(unsubscribe) unsubscribe();
+      unsubscribe();
       clearTimer();
     };
   }, []);
@@ -175,7 +157,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   return (
     <div className="body">
       <div className="card">
-        {!loading && currentLobby && (
+        {!loading && (
           <div className={styles.title_container}>
             <div className={styles.title}>
               {!currentLobby?.deletedAt
@@ -189,7 +171,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
             )}
           </div>
         )}
-        {!loading && !currentLobby?.deletedAt ? (
+        {!loading && currentLobby && !currentLobby.deletedAt ? (
           <div className={styles.lobby_card}>
             <div className={styles.lobby_container}>
               <div className={styles.metaData}>
@@ -208,6 +190,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
                       position={index + 1}
                       isHost={member.username === currentLobby.hostUsername}
                       hostUsername={currentLobby.hostUsername}
+                      lobbyId={params.lobbyId}
                     />
                   ))}
                   {}
@@ -216,7 +199,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
                   cKBtn
                   btnText="Add NPC"
                   className={styles.add_btn}
-                  onClick={() => AddNPC()}
+                  onClick={() => addNPC()}
                 />
               </div>
               <div

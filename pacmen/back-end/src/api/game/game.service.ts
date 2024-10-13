@@ -4,25 +4,14 @@ import { FirebaseService } from 'src/shared/services';
 
 import { setInterval } from 'timers/promises';
 
-import {
-  GameMap,
-  GameRole,
-  Direction,
-  Collection,
-  PlayerState,
-  Movement,
-} from 'src/shared/types';
+import { GameMap, Direction, Collection } from 'src/shared/types';
 
 import {
-  GameMapManager,
-  Ghost,
-  MapRenderer,
-  Pacman,
-  GameStateManager,
-  MovementAssistant,
-  GameMechanicsController,
-  GameBuilder,
-} from 'src/game-aux-functions';
+  calculateMachineTime,
+  collisionHandler,
+  gameOverCheck,
+  getFinalGameState,
+} from 'src/shared/game-aux-functions';
 
 import { Lobby } from '../lobby/model';
 
@@ -30,12 +19,17 @@ import { Game, GameMoveQueue } from './model';
 
 import { GameStartInput } from './dto';
 
+import {
+  GameBuilder,
+  GameMapManager,
+  Ghost,
+  Pacman,
+} from 'src/shared/game-aux-classes';
+
+const FRAMES_PER_SECOND: number = 10;
 @Injectable()
 export class GameService {
-  constructor(
-    private readonly firebaseService: FirebaseService,
-    private readonly gameStateManager: GameStateManager,
-  ) {}
+  constructor(private readonly firebaseService: FirebaseService) {}
 
   async create({ lobbyId }: GameStartInput): Promise<Game> {
     const fetchLobby = (await this.firebaseService.getOneById(
@@ -44,112 +38,109 @@ export class GameService {
     )) as Lobby;
 
     const gameMapId = fetchLobby.mapId;
-
     const fetchMap = (await this.firebaseService.getOneById(
       Collection.MAPS,
       gameMapId,
     )) as GameMap;
 
-    const gameBuilder = new GameBuilder(new MapRenderer());
-
+    const gameBuilder = new GameBuilder();
     const newGameState = gameBuilder
       .addPlayers(fetchLobby.members)
       .pacmanRoulette()
       .addLives(fetchLobby.lives)
       .addPlayersToMap(fetchMap)
       .addPlaytime(fetchLobby.playtime)
-      .printMapLayout()
+      // .printMapLayout()
       .getGame();
 
     const gameInitState = (await this.firebaseService.createEntity(
       Collection.GAMES,
       newGameState,
     )) as unknown as Game;
-
     this.start(gameInitState);
-
     return gameInitState;
   }
 
   async start(game: Game) {
     let timeInSeconds = game.playtime;
-    const gameID: string = game.uuid;
-    const pacmanId: number = game.players.find(
-      (player) => player.role === GameRole.PACMAN,
-    ).uuid;
-
-    const pacman = new Pacman(
-      game.lives,
-      game.numOfPellets,
-      new MovementAssistant(),
-    );
-    const ghosts = new Ghost(new MovementAssistant());
-    const gameMechanicsController = new GameMechanicsController();
-
+    const gameID: string = game.id;
+    const pacmanId: number = game.pacmanIndex + 1;
+    const pacman = new Pacman(game.lives, game.numOfPellets);
+    const ghosts = new Ghost();
     ghosts.setInkyRefPlayer(game.players);
-    ghosts.activateNPCMoveMode();
-
-    const gameMapManager = new GameMapManager(new MapRenderer());
-    const FRAMES_PER_SECOND: number = 10;
+    ghosts.movementTypeSwitch();
+    const gameMapManager = new GameMapManager();
 
     setTimeout(async () => {
       try {
         for await (const _ of setInterval(1000 / FRAMES_PER_SECOND)) {
           //Phase 1: Get GameState from Firebase
+          const phase1Start = performance.now();
+
           timeInSeconds -= 1 / FRAMES_PER_SECOND;
           const currentGameState: Game = await this.getGameState(gameID);
           const currentMoveQueue: GameMoveQueue =
             currentGameState.gameMoveQueue;
-          pacman.updatePlayer(pacmanId, currentGameState);
-          ghosts.updatePlayers(pacmanId, currentGameState);
+          const currentPlayers = currentGameState.players;
+          pacman.setPlayer(pacmanId, currentPlayers);
+          ghosts.setPlayers(pacmanId, currentPlayers);
           gameMapManager.setGameMap(currentGameState.map);
 
+          const phase1End = performance.now();
+          calculateMachineTime(phase1Start, phase1End, 'Get Firebase Update');
+
           //Phase 2: Update Players State in Game
-          const isPacmanPowerUp = pacman.getPowerUpStatus();
-          if (!isPacmanPowerUp) {
+          const phase2Start = performance.now();
+
+          if (!pacman.getPowerUpStatus()) {
             pacman.returnToNormal();
             ghosts.returnToNormal();
           }
+          ghosts.handleDeadGhosts();
 
-          const areDeadGhosts = ghosts
-            .getPlayers()
-            .some((player) => player.state === PlayerState.GHOST_DEAD);
-
-          if (areDeadGhosts) ghosts.reviveGhosts();
+          const phase2End = performance.now();
+          calculateMachineTime(phase2Start, phase2End, 'Set Players');
 
           //Phase 3: Update players movement in map
-          const pacmanNextMovement: Movement = pacman.generateMovement(
+          const phase3Start = performance.now();
+
+          pacman.generateNextMovement(
             gameMapManager.getGameMap(),
             currentMoveQueue,
           );
-          console.log("pacmanMovement:", pacmanNextMovement)
-          const ghostsNextMovement = ghosts.generateMovementForAll(
+          ghosts.generateAllMovements(
             gameMapManager.getGameMap(),
-            pacman.getPlayer(),
+            pacman,
             currentMoveQueue,
-          );
-          gameMapManager.addPlayersMovementToMap(
-            pacmanNextMovement,
-            ghostsNextMovement,
           );
 
-          pacman.adjustCoordinates();
-          ghosts.adjustCoordinatesForAll();
+          gameMapManager.updateMap(pacman.getPlayer(), ...ghosts.getPlayers());
+
+          pacman.updateCoordinates();
+          ghosts.updateAllCoordinates();
+
+          const phase3End = performance.now();
+          calculateMachineTime(phase3Start, phase3End, 'Movement');
 
           //Phase 4: After Movement Effects
-          const pacmanCell = pacman.getMapCell(gameMapManager.getGameMap());
+          const phase4Start = performance.now();
 
-          gameMechanicsController.powerUpController(ghosts, pacman, pacmanCell);
-
-          gameMechanicsController.collisionController(
-            pacmanCell,
-            pacman,
-            ghosts,
-            gameMapManager,
+          const pacmanCell = pacman.getMapCell(
+            gameMapManager.getGameMap(),
+            'current',
           );
+          pacman.eatItem(pacmanCell);
+          if (pacman.getPowerUpStatus()) {
+            ghosts.scareAllGhost();
+          }
+          collisionHandler(pacman, ghosts, gameMapManager);
+
+          const phase4End = performance.now();
+          calculateMachineTime(phase4Start, phase4End, 'After Movement Effect');
 
           //Phase 5: Send new game state to firebase
-          const updateGameState = this.gameStateManager.getFinalGameState(
+          const phase5Start = performance.now();
+          const updateGameState = getFinalGameState(
             currentGameState,
             pacman,
             ghosts,
@@ -158,28 +149,29 @@ export class GameService {
 
           await this.firebaseService.updateEntity(
             Collection.GAMES,
-            game.uuid,
+            game.id,
             updateGameState,
           );
+          const phase5End = performance.now();
+          calculateMachineTime(phase5Start, phase5End, 'Send Firebase Update');
 
           //Phase 6: End Game Steps
+          const phase6Start = performance.now();
           console.log(`Game Time: ${timeInSeconds}`);
-          // gameMapManager.printMapLayout(updateGameState.players);
-
-          const isGameOver = gameMechanicsController.gameOverController(
-            pacman,
-            ghosts,
-            timeInSeconds,
-          );
+          const isGameOver = gameOverCheck(pacman, ghosts, timeInSeconds);
 
           if (isGameOver) {
             ghosts.stopNPCMoveMode();
             break;
           }
+          const phase6End = performance.now();
+          calculateMachineTime(phase6Start, phase6End, 'End Game');
+          calculateMachineTime(phase1Start, phase6End, 'All Game');
           console.log('*********************************\n');
         }
       } catch (e) {
-        console.error(`Error during game loop: ${e}`);
+        console.error(`Error during game loop:`, e);
+        ghosts.stopNPCMoveMode();
       }
     }, 3000);
   }

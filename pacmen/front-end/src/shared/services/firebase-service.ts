@@ -156,8 +156,13 @@ export default class FirebaseService {
 
     const unsubscribe = onSnapshot(docRef, (docSnapshot: DocumentSnapshot) => {
       const id = docSnapshot.id;
-      docData = { id, ...docSnapshot.data() };
-      setDataState(docData);
+      if(docSnapshot.exists()) {
+        docData = { id, ...docSnapshot.data() };
+        setDataState(docData);
+      } else {
+        console.error("Data not found")
+      }
+ 
     });
 
     return { unsubscribe, data: docData };

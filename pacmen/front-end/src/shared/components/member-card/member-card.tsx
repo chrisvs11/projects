@@ -4,20 +4,15 @@ import { FC, useEffect, useState } from "react";
 
 import { Button } from "../button";
 
-import { useLobbyId, useLobbyLeaveMutation, useUsername } from "@/shared/hooks";
+import { useUsername } from "@/shared/hooks";
 
-import { Direction, GhostTypes } from "@/shared/types";
-
+import { Direction, GhostTypes, MemberCardProps } from "@/shared/types";
 
 import styles from "./member-card.module.css";
+
 import { GhostSprite } from "../player-sprites";
 
-interface MemberCardProps {
-  username: string;
-  position: number;
-  isHost: boolean;
-  hostUsername: string;
-}
+import { useLobbyLeaveMutation } from "@/shared/services/tanstack-query";
 
 const ghostSelector: { [key: string]: GhostTypes } = {
   blinky: GhostTypes.BLINKY,
@@ -31,12 +26,11 @@ export const MemberCard: FC<MemberCardProps> = ({
   position,
   isHost,
   hostUsername,
+  lobbyId,
 }) => {
   const [ghost, setGhost] = useState<GhostTypes>(GhostTypes.BLINKY);
   const [npc, setNPC] = useState<boolean>(false);
-  const { lobbyId } = useLobbyId();
   const { username: currentUsername } = useUsername();
-
 
   const { mutate } = useLobbyLeaveMutation({
     onSuccess: () => {

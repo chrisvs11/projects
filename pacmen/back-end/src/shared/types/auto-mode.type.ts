@@ -1,6 +1,7 @@
 export enum AutoModeType {
     CHASE = 'chase',
-    SCARE = 'scare',
+    SCATTER = 'scatter',
+    SCARE="scare"
   }
   
   

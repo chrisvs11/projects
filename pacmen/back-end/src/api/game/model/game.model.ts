@@ -1,11 +1,12 @@
 import { Direction, GameMap, Player } from 'src/shared/types';
 
 export class Game {
-  uuid?: string;
+  id?: string;
   startAt?: Date;
   endAt?: Date;
   createdAt: Date;
   players: Player[];
+  pacmanIndex:number
   map: GameMap;
   playtime: number;
   lives:number

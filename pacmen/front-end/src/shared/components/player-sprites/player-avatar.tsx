@@ -9,24 +9,16 @@ interface AvatarProps {
     positionY:number,
     playerNum:number,
     ghost?:boolean,
-    ghostName?:string
-    ghostAvatar?:string
+    ghostType?:GhostTypes
     state: PlayerState
-    direction?:Direction,
+    direction:Direction,
     scale?:number
-    rotation?:number
     
 }
 
-const ghostTypeHash:{[key:string]:GhostTypes} = {
-    "blinky":GhostTypes.BLINKY,
-    "inky":GhostTypes.INKY,
-    "pinky":GhostTypes.PINKY,
-    "clyde":GhostTypes.CLYDE
-}
 
 
-export const PlayerAvatar:FC<AvatarProps> = ({positionX, positionY, playerNum, ghost,ghostName="blinky",state,scale=1, rotation=0,direction = Direction.RIGHT}) => {
+export const PlayerAvatar:FC<AvatarProps> = ({positionX, positionY, playerNum, ghost, ghostType = GhostTypes.BLINKY,state,direction,scale=1}) => {
     
     return (
         <div className={styles.avatar_container} style={{left:positionX, top:positionY}}>
@@ -36,15 +28,15 @@ export const PlayerAvatar:FC<AvatarProps> = ({positionX, positionY, playerNum, g
             {ghost 
                 ? <GhostSprite 
                 state={state} 
-                type={ghostTypeHash[ghostName]} 
+                type={ghostType} 
                 direction={direction} 
                 scale={scale}/>
                 : <PacmanSprite 
                 state={state}
                 scale={scale}
-                rotation={rotation}
                 />
             }
+
         </div>
     )
 }

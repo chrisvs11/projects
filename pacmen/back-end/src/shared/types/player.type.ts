@@ -5,23 +5,21 @@ import { MapCell } from './map-cell.type';
 export enum GameRole {
   PACMAN = '🤗',
   GHOST = '👻',
-
 }
 
 export enum PlayerState {
-  ALIVE,
+  ALIVE="0",
   PACMAN_DEAD = '😖',
   PACMAN_POWER = '😋',
   GHOST_DEAD = '👀',
   GHOST_SCARE = '🏃',
-  EMPTY = null,
 }
 
 export class Player {
-  uuid?: number;
+  id?: number;
   username?: string;
   role: GameRole;
-  state:PlayerState;
+  state: PlayerState;
   color?: string;
   movement: Movement;
   createdAt: Date;
@@ -30,15 +28,15 @@ export class Player {
   targetCell?: MapCell;
 }
 
-
 type Difficulty = 'hard' | 'medium' | 'easy';
 
 export interface Movement {
-  direction:Direction | null;
-  coordinates:PlayerCoordinates
+  direction: Direction | null;
+  coordinates: PlayerCoordinates;
 }
 export interface PlayerCoordinates {
   current: number | null;
   next: number | null;
   start: number;
+  prev:number | null
 }
