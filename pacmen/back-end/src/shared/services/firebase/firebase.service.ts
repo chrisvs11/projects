@@ -54,7 +54,7 @@ export class FirebaseService {
 
       const docData = await this.getDocData(docRef);
 
-      return { uuid: docRef.id, ...docData };
+      return { id: docRef.id, ...docData };
     } catch (e) {
       console.error(e);
       throw this.conflictError;

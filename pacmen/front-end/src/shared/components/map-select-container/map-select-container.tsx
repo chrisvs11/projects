@@ -44,7 +44,7 @@ export const MapSelectContainer: FC<MapSelectContainerProps> = ({
       <div className={styles.map_layout}>
         <div className={styles.map_title}>{currentMap?.name}</div>
         {currentMap ? (
-          <MapLayout gameMap={currentMap} tilesHeight={10} />
+          <MapLayout gameMap={currentMap} tilesHeight="10px" />
         ) : (
           "undefined"
         )}

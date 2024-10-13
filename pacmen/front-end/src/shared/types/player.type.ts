@@ -6,10 +6,10 @@ export enum GameRole {
 
 export enum PlayerState {
   ALIVE,
-  PACMAN_DEAD,
-  PACMAN_POWER,
-  GHOST_DEAD,
-  GHOST_SCARE,
+  PACMAN_DEAD = '😖',
+  PACMAN_POWER = '😋',
+  GHOST_DEAD = '👀',
+  GHOST_SCARE = '🏃',
 }
 
 
@@ -24,9 +24,14 @@ export interface Player {
 }
 
 export interface Movement {
-  direction: Direction;
+  direction: PlayerDirection;
   coordinates: PlayerCoordinates;
 }
+
+export interface PlayerDirection {
+  default: Direction | null;
+}
+
 export interface PlayerCoordinates {
   current: number | null;
   next: number | null;
