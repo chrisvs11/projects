@@ -1,0 +1,59 @@
+.loginBody{
+    background-color: rgba(0,0,0,0.2);
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.btn{
+    height: 50px;
+    width: 157px;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
+    text-transform: uppercase;
+    transition: 0.5s;
+    border-radius: 15px;
+    background-color: rgb(255, 255, 255);
+    font-size: 1.5em;
+    font-weight: 800;
+    color: black;
+}
+
+
+.btn:hover{
+    letter-spacing: 0.1em;
+    background-color: rgb(238, 255, 0);
+    box-shadow: 0 0 10px rgb(2, 41, 15);
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    height: 400px;
+    z-index: 2;
+    backdrop-filter: blur(15px);
+}
+
+.title {
+    height: 120px;
+    background-image: url("../../public/images/pacmen_logo.png");
+    width: 700px;
+    background-size: contain;
+    background-position: center center;
+    background-repeat: no-repeat;
+    margin-bottom: 50px;
+}
+
+.btn_container {
+    display: flex;
+    gap: 20px;
+}
+
