@@ -1,2 +1,0 @@
-export const pacmanLogoImg:string = "https://clipground.com/images/pacman-logo-png-8.jpg"
-export const lobbyBackgroundImg:string = "https://c4.wallpaperflare.com/wallpaper/588/525/150/blinky-clyde-inky-pacman-wallpaper-preview.jpg"
