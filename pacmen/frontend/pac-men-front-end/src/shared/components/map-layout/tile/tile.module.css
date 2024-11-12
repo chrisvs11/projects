@@ -1,0 +1,6 @@
+.tile {
+    background-color: black;
+    background-size: contain;
+    image-rendering: pixelated;
+    transition:0.5s linear;
+}

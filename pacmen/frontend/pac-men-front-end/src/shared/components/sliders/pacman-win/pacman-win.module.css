@@ -1,0 +1,14 @@
+.list {
+    display: flex;
+    position: relative;
+    left:-100%;
+    animation: autoRun 4s linear infinite 
+    
+}
+@keyframes autoRun {
+    from {
+        left:-450px;
+    } to {
+        left:600px;
+    }
+}

@@ -1,0 +1,31 @@
+.list {
+    display: flex;
+    position: relative;
+    animation: autoRun 0.15s linear infinite alternate-reverse;
+    justify-content: center;
+    
+}
+
+#pacman {
+    position:relative;
+    left: 2px;
+    animation: changeRotation 0.5s linear infinite alternate-reverse; 
+}
+
+
+@keyframes autoRun {
+    from {
+        top:-2px;
+    } to {
+        top:2px;
+    }
+}
+
+@keyframes changeRotation  {
+    from {
+        transform: scale(0.8)
+    } to {
+        transform: scale(1.2);
+    }
+}
+
