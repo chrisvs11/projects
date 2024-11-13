@@ -15,7 +15,8 @@ import {
 
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
 
-const baseURL = "https://api-twqfs56djq-uc.a.run.app"; //Firebase Function API
+
+const baseURL = "https://us-central1-pacmen-e7657.cloudfunctions.net/api"; //Firebase Function API
 // axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 
 export const useGameCreateMutation = (
@@ -55,7 +56,12 @@ export const useLobbyJoinMutation = (
     ...options,
     mutationFn: async (data: LoobyJoinOptions): Promise<Lobby> => {
       const response = await axios.post(
-        `${baseURL}/lobbies/join/${data.lobbyId}/${data.username}`
+        `${baseURL}/lobbies/join/${data.lobbyId}/${data.username}`,{
+          headers:{
+            "User-Agent":"PostmanRuntime/7.42.0",
+            "Accept":"*/*"
+          }
+        }
       );
       return response.data;
     },
