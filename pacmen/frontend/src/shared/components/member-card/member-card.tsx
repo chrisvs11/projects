@@ -2,7 +2,7 @@
 
 import { FC, useEffect, useState } from "react";
 
-import { Button } from "../button";
+import { Button } from "../buttons";
 
 import { useCustomQuery, useUsername } from "@/shared/hooks";
 

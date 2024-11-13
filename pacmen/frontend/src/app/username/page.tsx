@@ -90,7 +90,6 @@ export default function Page() {
   };
 
   const onSubmit = () => {
-    console.log("adding:", values.username);
     setUsername(values.username);
     saveInLocalStorage(values.username);
     if (lobbyId) {

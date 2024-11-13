@@ -33,7 +33,6 @@ export default function Page() {
         <div className={styles.title}> </div>
         <div className={styles.btn_container}>
 
-      
           <Link href={"/lobby/room"}>
             <Button
               cKBtn={false}

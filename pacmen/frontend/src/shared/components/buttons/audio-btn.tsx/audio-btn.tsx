@@ -1,7 +1,7 @@
 "useClient";
 import { FC } from "react";
 
-import { Button } from "..";
+import { Button } from "../..";
 
 import { useRecoilState } from "recoil";
 
