@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import { Button } from "../button";
+import { Button } from "../buttons";
 
 import { ListPropertyContainerProps } from "@/shared/types";
 

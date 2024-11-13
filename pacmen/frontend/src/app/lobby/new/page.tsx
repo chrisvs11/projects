@@ -132,7 +132,6 @@ export default function LobbyCreationPage() {
                   propertyBottom={gameMaps[mapIndex].minPlayers}
                   step={1}
                   setProperty={settingPlayers}
-                  className={styles.btn}
                 />
 
                 <NumPropertyContainer
@@ -142,7 +141,6 @@ export default function LobbyCreationPage() {
                   propertyBottom={0}
                   step={1}
                   setProperty={settingLives}
-                  className={styles.btn}
                 />
                 <div className={styles.odd_row}>
                 <NumPropertyContainer
@@ -151,8 +149,7 @@ export default function LobbyCreationPage() {
                   propertyTop={90}
                   step={15}
                   setProperty={settingTime}
-                  propertyBottom={45}
-                  className={styles.btn}
+                  propertyBottom={15}
                 />
                 </div>
          
@@ -163,7 +160,7 @@ export default function LobbyCreationPage() {
                   optionList={list_lobby_types}
                   optionValue={lobbyType}
                   setListValue={settingLobbyRoomType}
-                  className={`${styles.lobby_btn} ${styles.btn}`}
+                  className={`${styles.lobby_btn}`}
                 />
               </div>
               <div className={styles.btns_container}>

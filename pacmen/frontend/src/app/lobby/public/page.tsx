@@ -99,7 +99,7 @@ export default function LobbyPage() {
           </table>
           {!loading &&
             !fetchedLobby.find(
-              (lobby) => lobby.type === LobbyType.PUBLIC && !lobby.deletedAt
+              (lobby) => lobby.type === LobbyType.PUBLIC && !lobby.deletedAt && lobby.members.length < lobby.maxPlayers
             ) && (
               <tr
                 style={{
