@@ -69,7 +69,6 @@ export default function Page({
   const gameAudios = new GameAudios();
   const frameCountRef = useRef(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const prevPositionRef = useRef<{ [key: string]: Player }>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [pacmanScore, setPacmanScore] = useState<number>(0);
   const [ghostScore, setGhostScore] = useState<number>(0);
