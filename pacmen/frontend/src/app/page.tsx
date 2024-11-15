@@ -17,7 +17,9 @@ export default function Page() {
   const gameAudio = new GameAudios()
 
   const activateAudio = () => {
+    gameAudio.stopAllMusic()
     gameAudio.introSongMusicStart()
+
   }
 
 

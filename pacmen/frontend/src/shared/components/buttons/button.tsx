@@ -11,12 +11,13 @@ export interface ButtonProps {
     cssStyle?:CSSProperties
     type?:"button"|"submit"|"reset"|undefined
     onClick?:() => void
+    disabled?:boolean
 
 
 
 }
 
-export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSize="md",ckVariant="solid", cssStyle,className,type="button",onClick}) => {
+export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSize="md",ckVariant="solid", cssStyle,className,type="button",onClick, disabled}) => {
     return (
         cKBtn ? 
         <BCK 
@@ -27,9 +28,10 @@ export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSi
         style = {cssStyle}
         type={type}
         onClick={onClick}
+        disabled
         >
             {btnText}
         </BCK>
-        : <button className={className} onClick={onClick}> {btnText}</button>
+        : <button disabled className={className} onClick={onClick}> {btnText}</button>
     )
 }

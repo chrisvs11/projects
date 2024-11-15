@@ -34,7 +34,7 @@ export const PlayerAvatar: FC<AvatarProps> = ({
 
   useEffect(() => {
     setRec(coordinatesToRecCoordinates())
-  },[coordinates,coordinatesToRecCoordinates])
+  },[coordinates])
 
   return (
     <div className={`${styles.avatar_container} ${className}`} style={{left: `${(rec?.left||0)+offsetX}px`, top:`${(rec?.top||0)+offsetY}px`}}>

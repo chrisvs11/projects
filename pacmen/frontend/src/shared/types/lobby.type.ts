@@ -4,7 +4,8 @@ export interface Lobby {
   code: string;
   deletedAt?: Date;
   hostUsername: string;
-  gamesIds?: string[];
+  gameStarted:boolean;
+  gameId: string;
   id: string;
   uuid:string
   maxPlayers: number;

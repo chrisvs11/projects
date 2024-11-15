@@ -32,6 +32,7 @@ const TILE_WIDTH: number = 10;
 export default function Page({ params }: { params: { lobbyId: string } }) {
   const gameAudios = new GameAudios();
   const [currentLobby, setCurrentLobby] = useState<Lobby | null>(null);
+  const [isClick,setIsClicked] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true);
   const { gameMap, updateGameMap, mapTiles, setMapTiles } = useMapLayout();
   const { getNPCName } = useNPC();
@@ -43,22 +44,27 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   const [windowWidth, setWindowWidth] = useState<number>(0);
   const router = useRouter();
 
-  async function fetchMap() {
+  async function setGameMap() {
     try {
-      if (!currentLobby) return;
+      if (!currentLobby) throw new Error("Cannot find lobby number");
 
       const gameMap = (await firebaseService.getData(
         CollectionNames.MAPS,
         currentLobby.mapId
-      )) as GameMap;
-      updateGameMap(gameMap);
+      )) as GameMap; 
+
+      updateGameMap(gameMap)
       setTimeout(() => {
-        setLoading(false);
+        setLoading(false)
       }, 2000);
+
     } catch (e) {
       console.error("Error: ", e);
+      return null
     }
   }
+
+ 
 
   const addNPC = () => {
     if (!currentLobby) return;
@@ -74,6 +80,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   };
 
   const startGame = () => {
+    setIsClicked(true)
     createGame({ lobbyId: params.lobbyId });
   };
 
@@ -86,8 +93,12 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   useEffect(() => {
     if (!currentLobby) return;
 
-    fetchMap();
+    setGameMap()
 
+    if(currentLobby.gameStarted && currentLobby.gameId) {
+      console.log(`ENTERING GAME....${currentLobby.gameId}`)
+      router.push(`/lobby/${currentLobby.id}/game/${currentLobby.gameId}`);
+    }
     if (currentUsername && !playerId) {
       const playerIndex: number = currentLobby.members.findIndex(
         (member) => member.username === currentUsername
@@ -111,6 +122,8 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   const errorFn = () => {
     router.push("/404");
   };
+
+  
 
   useEffect(() => {
     const lobbySubscription = firebaseService.getRealTimeDocument(
@@ -176,12 +189,14 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
                 />}
               </div>
               <div className={styles.btn_container}>
-                <Button
-                  btnText={`START`}
+              {currentUsername === currentLobby.hostUsername && <Button
+                  btnText={!isClick ? `START`: `Processing...`}
                   className={`${styles.btn} continue ${currentLobby.members.length < currentLobby.maxPlayers && styles.no_active_btn}`}
                   cKBtn
                   onClick={() => startGame()}
-                />
+                  disabled = {isClick}
+                  cssStyle={{pointerEvents:`${isClick ? "none" :"auto"}`}}
+                />}
               </div>
             </div>
 

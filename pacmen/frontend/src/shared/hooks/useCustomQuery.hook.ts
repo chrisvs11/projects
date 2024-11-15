@@ -49,9 +49,7 @@ export const useCustomQuery = () => {
 
   const { mutate: createGame } = useGameCreateMutation({
     onSuccess: (data: Game,{lobbyId}) => {
-      console.log("Game created");
       router.push(`${lobbyId}/game/${data.id}`);
-
     },
     onError: (e) => {
       console.error("Error creating the game", e.message);

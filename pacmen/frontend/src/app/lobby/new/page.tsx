@@ -147,9 +147,9 @@ export default function LobbyCreationPage() {
                   propertyTitle={"Sec:"}
                   propertyValue={time}
                   propertyTop={90}
-                  step={15}
+                  step={5}
                   setProperty={settingTime}
-                  propertyBottom={15}
+                  propertyBottom={5}
                 />
                 </div>
          

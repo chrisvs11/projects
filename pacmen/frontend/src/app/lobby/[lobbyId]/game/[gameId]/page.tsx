@@ -40,6 +40,7 @@ import {
 } from "@/shared/components";
 
 import { GameAudios } from "@/shared/aux-classes";
+import { gameState } from "@/shared/states";
 
 const firebaseService = new FirebaseService();
 
@@ -101,6 +102,7 @@ export default function Page({
   const router = useRouter();
 
   const eventListenerKeyDown = (e: KeyboardEvent) => {
+    console.log("key pressed:", e.key);
     setDirection(keyToDirection[e.key]);
   };
 
@@ -113,7 +115,6 @@ export default function Page({
         lobbyId: lobbyId,
       });
     }
-
     setLobbyId(null);
     setPlayer(null);
     setPlayerId("");
@@ -127,73 +128,56 @@ export default function Page({
   };
 
   useEffect(() => {
-    if (!gameMap || !gamePlayerStates || !direction || !game) return;
-
-    if (!player) {
-      setPlayer(game.players[parseInt(playerId) - 1]);
-    }
-
+    if (!gameMap || !gamePlayerStates || !game) return;
+  
     if (game.gameState === GameState.END) return;
-
+  
+    if (!player) setPlayer(game.players[parseInt(playerId) - 1]);
+  
     let animationFrameId: number;
-
-    if (gameMap && direction) {
-      const renderFrame = () => {
-        frameCountRef.current += 1;
-        if (frameCountRef.current % WAIT_FRAMES === 0) {
-          if (game?.gameState === GameState.RESTART) {
-            gameAudios.ghostSirenMusicStop();
-            if (game.lives >= 0) gameAudios.startGameMusic();
-            console.log(
-              "next:",
-              gamePlayerStates[playerId].next,
-              "start:",
-              gamePlayerStates[playerId].start
-            );
-            if (
-              gamePlayerStates[playerId].next !==
-              gamePlayerStates[playerId].start
-            ) {
-              moveYourAvatar({
-                playerNumber: playerId,
-                gameId: gameId,
-                move: {
-                  next: gamePlayerStates[playerId].start,
-                  direction: direction,
-                },
-              });
-            }
-          } else if (
-            game?.gameState === GameState.ON_GOING &&
-            game.lives >= 0
-          ) {
-            gameAudios.ghostSirenMusicStart();
-            const currentCoordinates = gamePlayerStates[playerId].next;
-            const nextCoordinates = getNextCoordinates(
-              currentCoordinates,
-              gameMap
-            );
-
-            if (nextCoordinates !== currentCoordinates && direction) {
-              moveYourAvatar({
-                playerNumber: playerId,
-                gameId: gameId,
-                move: {
-                  next: nextCoordinates,
-                  direction,
-                },
-              });
-            }
-          }
+  
+    const renderFrame = () => {
+      frameCountRef.current += 1;
+  
+      if (frameCountRef.current % WAIT_FRAMES === 0) {
+        if (game.gameState === GameState.ON_GOING) {
+          const currentCoordinates = gamePlayerStates[playerId].next;
+          const nextCoordinates = getNextCoordinates(currentCoordinates, gameMap);
+          const canAvatarMoved = nextCoordinates !== currentCoordinates;
+  
+          if (!canAvatarMoved) return;
+  
+          moveYourAvatar({
+            playerNumber: playerId,
+            gameId: gameId,
+            move: {
+              next: nextCoordinates,
+              direction,
+            },
+          });
+        } else if (game.gameState === GameState.RESTART) {
+          gameAudios.ghostSirenMusicStop();
+          if (gamePlayerStates[playerId].next !== gamePlayerStates[playerId].start)
+            return;
+  
+          moveYourAvatar({
+            playerNumber: playerId,
+            gameId: gameId,
+            move: {
+              next: gamePlayerStates[playerId].start,
+              direction: direction || Direction.UP,
+            },
+          });
         }
-
-        animationFrameId = requestAnimationFrame(renderFrame);
-      };
-
+      }
+  
       animationFrameId = requestAnimationFrame(renderFrame);
-    }
+    };
+  
+    animationFrameId = requestAnimationFrame(renderFrame);
+  
     return () => cancelAnimationFrame(animationFrameId);
-  }, [gameMap, direction, gamePlayerStates, game]);
+  }, [gameMap, gamePlayerStates, game, direction]);
 
   const errorFn = () => {
     router.push("404");
@@ -207,6 +191,7 @@ export default function Page({
     if (game.gameState === GameState.END) {
       gameAudios.stopAllMusic();
       gameAudios.ghostSirenMusicStop();
+      return;
     }
 
     const currentPositions = Object.fromEntries(
@@ -255,7 +240,7 @@ export default function Page({
 
       prevPositionRef.current = currentPositions;
     }
-  }, [gamePlayerStates, game, mapTiles]);
+  }, [gamePlayerStates, game, direction, mapTiles]);
 
   useEffect(() => {
     const newTileWidth =
@@ -282,7 +267,6 @@ export default function Page({
 
     window.addEventListener("keydown", eventListenerKeyDown);
     setLoading(false);
-
     gameAudios.startGameMusic();
     gameAudios.introSongMusicStop();
     setTimeout(() => {
@@ -293,7 +277,7 @@ export default function Page({
       setWindowWidth(window.innerWidth);
     }
 
-    setWindowWidth(window.innerWidth)
+    setWindowWidth(window.innerWidth);
 
     window.addEventListener("resize", resize);
 
@@ -307,6 +291,7 @@ export default function Page({
 
   return (
     <div className={styles.body}>
+      <div></div>
       {!loading &&
         game?.gameState !== GameState.END &&
         game &&
@@ -425,6 +410,34 @@ export default function Page({
               />
             </div>
           </div>
+        </div>
+      )}
+      {!loading && game?.gameState !== GameState.END && windowWidth < 600 && (
+        <div className={styles.controller} style={{ color: "white" }}>
+          <Button
+            cKBtn={true}
+            btnText={"↑"}
+            className={`${styles.up} ${styles.control}`}
+            onClick={() => setDirection(Direction.UP)}
+          />
+          <Button
+            cKBtn={true}
+            btnText={"←"}
+            className={`${styles.left} ${styles.control}`}
+            onClick={() => setDirection(Direction.LEFT)}
+          />
+          <Button
+            cKBtn={true}
+            btnText={"→"}
+            className={`${styles.right} ${styles.control}`}
+            onClick={() => setDirection(Direction.RIGHT)}
+          />
+          <Button
+            cKBtn={true}
+            btnText={"↓"}
+            className={`${styles.down} ${styles.control}`}
+            onClick={() => setDirection(Direction.DOWN)}
+          />
         </div>
       )}
     </div>

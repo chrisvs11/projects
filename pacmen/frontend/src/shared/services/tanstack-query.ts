@@ -16,8 +16,7 @@ import {
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
 
 
-const baseURL = "https://us-central1-pacmen-e7657.cloudfunctions.net/api"; //Firebase Function API
-// axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
+const baseURL = "https://us-central1-pacmen-e7657.cloudfunctions.net/api"; 
 
 export const useGameCreateMutation = (
   options: UseMutationOptions<Game, Error, GameCreateOptions>

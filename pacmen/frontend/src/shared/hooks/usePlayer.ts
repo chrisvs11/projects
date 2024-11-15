@@ -7,7 +7,7 @@ import { useRecoilState } from "recoil";
 import { PlayerIdState } from "../states";
 
 export const usePlayer = () => {
-  const [direction, setDirection] = useState<Direction | null>(null);
+  const [direction, setDirection] = useState<Direction>(Direction.UP);
   const [playerId,setPlayerId] = useRecoilState(PlayerIdState)
   const [player,setPlayer] = useState<Player|null>(null)
 
