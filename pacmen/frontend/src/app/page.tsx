@@ -46,14 +46,14 @@ export default function Page() {
 
           <Link href={"/lobby/404"}>
             <Button
-              cKBtn={true}
+              cKBtn={false}
               btnText={"Local"}
               className={styles.btn}
               CKColorSchema="green"
             />
           </Link>
             <Button
-              cKBtn={true}
+              cKBtn={false}
               btnText={"Online"}
               className={styles.btn}
               CKColorSchema="green"
@@ -61,6 +61,7 @@ export default function Page() {
                 activateAudio()
                 goNextPage()
               }}
+              disabled={false}
             />
         </div>
       </motion.div>
