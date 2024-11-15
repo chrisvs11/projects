@@ -18,6 +18,9 @@ export const useCustomQuery = () => {
   const router = useRouter()
 
   const { mutate: moveYourAvatar } = useStatMoveMutation({
+    onSuccess:() => {
+      console.log("movement send successfully")
+    },
     onError: () => {
       console.log("error moving your avatar");
     },

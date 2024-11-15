@@ -50,8 +50,8 @@ const MAP_OFFSET = {
   Y: -TILE_WIDTH * 0.2,
 };
 
-const WAIT_FRAMES: number = 10;
-
+const WAIT_FRAMES: number = 8;
+const WAIT_TIME: number = 5000;
 const POWER_UP_TIME: number = 15000;
 
 const keyToDirection: { [key: string]: Direction } = {
@@ -141,44 +141,34 @@ export default function Page({
     const renderFrame = () => {
       frameCountRef.current += 1;
 
-      if (frameCountRef.current % WAIT_FRAMES === 0) {
-        if (game.gameState === GameState.ON_GOING) {
-          const currentCoordinates = gamePlayerStates[playerId].next;
-          const nextCoordinates = getNextCoordinates(
-            currentCoordinates,
-            gameMap
-          );
-          // const canAvatarMoved = nextCoordinates !== currentCoordinates; // why does the websockets does not work when this is on
+      if (frameCountRef.current % WAIT_FRAMES !== 0)
+        return (animationFrameId = requestAnimationFrame(renderFrame));
 
-          // if (!canAvatarMoved) return;
-
-          moveYourAvatar({
-            playerNumber: playerId,
-            gameId: gameId,
-            move: {
-              next: nextCoordinates,
-              direction,
-            },
-          });
-        } else if (game.gameState === GameState.RESTART) {
-          gameAudios.ghostSirenMusicStop();
-          if (
-            gamePlayerStates[playerId].next !== gamePlayerStates[playerId].start
-          )
-            return;
-
-          moveYourAvatar({
-            playerNumber: playerId,
-            gameId: gameId,
-            move: {
-              next: gamePlayerStates[playerId].start,
-              direction: direction || Direction.UP,
-            },
-          });
-        }
+      if (game.gameState === GameState.ON_GOING && direction) {
+        const currentCoordinates = gamePlayerStates[playerId].next;
+        const nextCoordinates = getNextCoordinates(currentCoordinates, gameMap);
+        // const canAvatarMoved = nextCoordinates !== currentCoordinates; // why does the websockets does not work when this is on
+        // if (!canAvatarMoved) return;
+        moveYourAvatar({
+          playerNumber: playerId,
+          gameId: gameId,
+          move: {
+            next: nextCoordinates,
+            direction: direction,
+          },
+        });
       }
-
-      animationFrameId = requestAnimationFrame(renderFrame);
+      if (game.gameState === GameState.RESTART) {
+        gameAudios.ghostSirenMusicStop();
+        moveYourAvatar({
+          playerNumber: playerId,
+          gameId: gameId,
+          move: {
+            next: gamePlayerStates[playerId].start,
+            direction: Direction.RIGHT,
+          },
+        });
+      }
     };
 
     animationFrameId = requestAnimationFrame(renderFrame);
@@ -200,55 +190,52 @@ export default function Page({
     latestGamePlayerStateRef.current = gamePlayerStates;
 
     if (game.gameState === GameState.END) {
-      gameAudios.stopAllMusic();
       gameAudios.ghostSirenMusicStop();
+      gameAudios.gameOverMusicStart();
       return;
     }
 
-      const pacmanState = gamePlayerStates[String(game.pacmanId)];
+    const pacmanState = gamePlayerStates[String(game.pacmanId)];
 
-      //Item Handler Phase
-      const item = getMapTileItem(pacmanState.next, mapTiles);
-      let points: number = pointsHash[item || GameItem.EMPTY];
-      let powerUpTimerSounds: NodeJS.Timeout
-      let powerUpTimerGhost:NodeJS.Timeout
-      if (item === GameItem.POWER_UP && String(game.pacmanId) === playerId) {
-        powerUpTimerSounds = gameAudios.playPowerUpSounds(POWER_UP_TIME);
-        scareGhosts(gamePlayerStates, game.id);
+    //Item Handler Phase
+    const item = getMapTileItem(pacmanState.next, mapTiles);
+    let points: number = pointsHash[item || GameItem.EMPTY];
 
-        if (timerRef.current) clearTimeout(timerRef.current);
+    if (item === GameItem.POWER_UP && String(game.pacmanId) === playerId) {
+      gameAudios.playPowerUpSounds(POWER_UP_TIME);
+      scareGhosts(gamePlayerStates, game.id);
+      setTimeout(() => {
+        gameAudios.playExtendMusic();
+        gameAudios.frightMovingMusicStop();
+      }, POWER_UP_TIME - 2500);
 
-        powerUpTimerGhost = setTimeout(() => {
-          if (latestGamePlayerStateRef.current) {
-            returnToNormalGhosts(latestGamePlayerStateRef.current, gameId);
-          }
-        }, POWER_UP_TIME);
+      if (timerRef.current) clearTimeout(timerRef.current);
 
-        timerRef.current = powerUpTimerGhost;
-      }
+      const powerUpTime = setTimeout(() => {
+        if (latestGamePlayerStateRef.current) {
+          returnToNormalGhosts(latestGamePlayerStateRef.current, gameId);
+        }
+      }, POWER_UP_TIME);
+
+      timerRef.current = powerUpTime;
+    }
+    setPacmanScore((prev) => prev + points);
+
+    //Collision Handler
+    const caught = collisionHandler(
+      gamePlayerStates,
+      String(game.pacmanId),
+      game.id
+    );
+
+    if (caught.player === "pacman") {
+      setGhostScore((prev) => prev + caught.points);
+    } else {
+      points += caught.points;
+    }
+    if (points > 0) {
       setPacmanScore((prev) => prev + points);
-
-      //Collision Handler
-      const caught = collisionHandler(
-        gamePlayerStates,
-        String(game.pacmanId),
-        game.id
-      );
-
-      if (caught.player === "pacman") {
-        setGhostScore((prev) => prev + caught.points);
-      } else {
-        points += caught.points;
-      }
-      if (points > 0) {
-        setPacmanScore((prev) => prev + points);
-      }
-
-      return (() => {
-        clearTimeout(powerUpTimerSounds)
-        clearTimeout(powerUpTimerGhost)
-      })
-    
+    }
   }, [gamePlayerStates, game, direction, mapTiles]);
 
   useEffect(() => {
@@ -268,15 +255,15 @@ export default function Page({
 
     if (gameMap) setMapTiles(gameMap.tiles);
 
-    window.addEventListener("keydown", eventListenerKeyDown);
-
     setLoading(false);
-    gameAudios.startGameMusic();
-    gameAudios.introSongMusicStop();
 
+
+    gameAudios.introSongMusicStop();
+    gameAudios.startGameMusic();
     const timerId = setTimeout(() => {
       gameAudios.ghostSirenMusicStart();
-    }, 5000);
+      window.addEventListener("keydown", eventListenerKeyDown);
+    },WAIT_TIME);
 
     setWindowWidth(window.innerWidth);
 
@@ -287,7 +274,7 @@ export default function Page({
       movesSubscription();
       window.removeEventListener("keydown", eventListenerKeyDown);
       window.removeEventListener("resize", resize);
-      clearTimeout(timerId);
+      if (timerId) clearTimeout(timerId);
     };
   }, []);
 

@@ -8,7 +8,7 @@ import { PlayerIdState } from "../states";
 import { useUsername } from "./username.hook";
 
 export const usePlayer = () => {
-  const [direction, setDirection] = useState<Direction>(Direction.UP);
+  const [direction, setDirection] = useState<Direction>();
   const [playerId,setPlayerId] = useRecoilState(PlayerIdState)
   const {username} = useUsername()
   const [player,setPlayer] = useState<Player|null>(null)

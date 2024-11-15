@@ -103,15 +103,29 @@ export class GameAudios {
     }
   }
 
-  playPowerUpSounds = (time:number): NodeJS.Timeout=> {
+  playPowerUpSounds = (time:number) => {
     this.frightMovingMusicStart();
     this.ghostSirenMusicStop();
-    const timerId:NodeJS.Timeout = setTimeout(() => {
-      this.frightMovingMusicStop();
+    setTimeout(() => {
       this.ghostSirenMusicStart();
     }, time);
-    return timerId  
   } 
-  
+
+  gameOverMusicStart = () => {
+    const audio:HTMLElement | null = document.getElementById("gameOver") 
+    if (audio) {
+      const audioHandler = new AudioHandler(audio as HTMLAudioElement)
+      audioHandler.play()
+    }  
+  }
+
+  playExtendMusic = () => {
+    const audio:HTMLElement | null = document.getElementById("extend") 
+    console.log("extend",audio)
+    if (audio) {
+      const audioHandler = new AudioHandler(audio as HTMLAudioElement)
+      audioHandler.play()
+    }  
+  }
 
 };

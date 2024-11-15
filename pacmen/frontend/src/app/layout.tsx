@@ -20,6 +20,8 @@ export default function RootLayout({
         <audio id="siren" src="/sounds/siren0.wav" loop />
         <audio id="fright" src="/sounds/fright_sound.wav" loop />
         <audio id="introSong" src="/sounds/introSong.mp3" loop />
+        <audio id="extend" src="/sounds/extend.wav"/>
+        <audio id="gameOver" src="/sounds/intermission.wav"/>
         <iframe
           className={"pacmanVideo"}
           height="100vh"
