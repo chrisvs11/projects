@@ -28,7 +28,7 @@ export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSi
         style = {cssStyle}
         type={type}
         onClick={onClick}
-        disabled
+        disabled = {disabled}
         >
             {btnText}
         </BCK>

@@ -40,7 +40,6 @@ import {
 } from "@/shared/components";
 
 import { GameAudios } from "@/shared/aux-classes";
-import { gameState } from "@/shared/states";
 
 const firebaseService = new FirebaseService();
 
