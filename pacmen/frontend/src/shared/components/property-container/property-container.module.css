@@ -32,10 +32,16 @@
 .property_btn {
     transition: 0.2s;
     font-size: 32px;
+    font-weight: 1000;
+    position: relative;
+    bottom: 5px;
+    margin-inline: 10px;
+    color: white;
+
 }
 
 .property_btn:hover {
-    color: yellow;
+    color: black;
 }
 
 

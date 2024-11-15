@@ -38,7 +38,7 @@ export const NumPropertyContainer: FC<NumPropertyContainerProps> = ({
       <p className={styles.property_title}>{propertyTitle}</p>
       <div className={styles.property_btns_container}>
         <Button
-          btnText=" - "
+          btnText="<"
           cKBtn={false}
           className={styles.property_btn}
           type="button"
@@ -48,7 +48,7 @@ export const NumPropertyContainer: FC<NumPropertyContainerProps> = ({
           {propertyValue}
         </p>
         <Button
-          btnText=" + "
+          btnText=">"
           cKBtn={false}
           className={styles.property_btn}
           type="button"

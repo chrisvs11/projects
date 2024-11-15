@@ -20,6 +20,7 @@ import {
   NumPropertyContainer,
 } from "@/shared/components";
 
+
 const TILES_WIDTH: number = 10;
 
 const firebaseService: FirebaseService = new FirebaseService();
@@ -28,6 +29,7 @@ const WAIT_TIME: number = 1500;
 
 export default function LobbyCreationPage() {
   const [loading, setLoading] = useState<boolean>(true);
+  const [isClick, setIsClick] = useState<boolean>(false);
   const { username: currentUsername } = useUsername();
   const {
     lobbyType,
@@ -45,6 +47,7 @@ export default function LobbyCreationPage() {
     list_lobby_types,
   } = useLobbyCreation();
   const { createLobby } = useCustomQuery();
+
   const [tileWidth, setTileWidth] = useState<number>(TILES_WIDTH);
   const [windowWidth, setWindowWidth] = useState<number>(0);
 
@@ -55,8 +58,7 @@ export default function LobbyCreationPage() {
   }, [windowWidth]);
 
   useEffect(() => {
-
-    setWindowWidth(window.innerWidth)
+    setWindowWidth(window.innerWidth);
 
     function resize() {
       setWindowWidth(window.innerWidth);
@@ -68,6 +70,7 @@ export default function LobbyCreationPage() {
   }, []);
 
   const clickHandler = async () => {
+    setIsClick(true);
     const newLobby: LobbyCreationOptions = {
       maxPlayers: players,
       type: lobbyType,
@@ -79,7 +82,7 @@ export default function LobbyCreationPage() {
     createLobby(newLobby);
   };
 
-  const getAllGameMaps = useCallback(async() => {
+  const getAllGameMaps = useCallback(async () => {
     try {
       const gameMaps: GameMap[] = (await firebaseService.getAllDocsInCollection(
         CollectionNames.MAPS
@@ -91,7 +94,7 @@ export default function LobbyCreationPage() {
     } catch (error) {
       console.error("Error getting the map", error);
     }
-  },[setGameMaps,setLoading]);
+  }, [setGameMaps, setLoading]);
 
   const updateNumPlayer = useCallback(() => {
     if (gameMaps) {
@@ -103,16 +106,16 @@ export default function LobbyCreationPage() {
         settingPlayers(currentMap.maxPlayers);
       }
     }
-  },[gameMaps,players,mapIndex,settingPlayers]);
+  }, [gameMaps, players, mapIndex, settingPlayers]);
 
   useEffect(() => {
     getAllGameMaps();
     updateNumPlayer();
-  }, [mapIndex,getAllGameMaps,updateNumPlayer]);
+  }, [mapIndex, getAllGameMaps, updateNumPlayer]);
 
   return (
     <div className="body">
-      <div className={`card`}>
+      <div className={`card ${styles.card}`}>
         {!loading && gameMaps ? (
           <div>
             <div className={styles.lobby_edit}>
@@ -143,16 +146,15 @@ export default function LobbyCreationPage() {
                   setProperty={settingLives}
                 />
                 <div className={styles.odd_row}>
-                <NumPropertyContainer
-                  propertyTitle={"Sec:"}
-                  propertyValue={time}
-                  propertyTop={90}
-                  step={5}
-                  setProperty={settingTime}
-                  propertyBottom={5}
-                />
+                  <NumPropertyContainer
+                    propertyTitle={"Sec:"}
+                    propertyValue={time}
+                    propertyTop={90}
+                    step={5}
+                    setProperty={settingTime}
+                    propertyBottom={5}
+                  />
                 </div>
-         
               </div>
               <div id={"lobby_type"} className="private">
                 <ListPropertyContainer
@@ -166,9 +168,11 @@ export default function LobbyCreationPage() {
               <div className={styles.btns_container}>
                 <Button
                   cKBtn={true}
-                  btnText={"CREATE LOBBY"}
+                  btnText={`${!isClick ? "CREATE LOBBY" : "PROCESSING..."}`}
                   className={`${styles.btn}  continue`}
                   onClick={() => clickHandler()}
+                  disabled={isClick}
+                  cssStyle={{ pointerEvents: `${!isClick ? "auto" : "none"}` }}
                 />
               </div>
             </div>

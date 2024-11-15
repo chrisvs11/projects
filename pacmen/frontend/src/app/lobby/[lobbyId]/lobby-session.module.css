@@ -130,8 +130,8 @@
 }
 
 .exit {
-  width: 100%;
   position: absolute;
+  width: 100%;
   z-index: 2;
   bottom: 10px;
   left: 30px;
@@ -161,21 +161,24 @@
 
   .code_container {
     font-size: 26px;
-    width: 150px;
+    width: auto;
     padding: 8px;
-    margin-top: 12px;
+    padding-inline: 35px;
+    margin-top: 6px;
+    margin-bottom: 32px;
   }
 
   .btn_container {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     width: 100%;
     margin-top: 25px;
   }
 
   .btn {
-    width: 120px !important;
+    width: 130px !important;
   }
+
 
   .card {
     width: 700px;
@@ -195,10 +198,11 @@
   }
 
   .exit {
+    position: relative;
     display: flex;
     justify-content: center;
     width: 100%;
-    bottom: 100px;
-    left: 0px;
+    bottom: 82px;
+    left: -83px;
   }
 }

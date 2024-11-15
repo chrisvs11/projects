@@ -59,14 +59,16 @@ export const useCustomQuery = () => {
   const { mutate:createLobby } = useLobbyCreateMutation({
     onSuccess: (data: Lobby) => {
       router.push(`${data.id}`);
-      console.log("Data successfully sent to database");
       const audio = document.getElementById("audio") as HTMLAudioElement;
       audio.pause();
+      return true
+      
     },
     onError: (error) => {
       console.error("Mutation error:", error);
       const audio = document.getElementById("audio") as HTMLAudioElement;
       audio.pause();
+      return error
     },
   });
 
