@@ -10,9 +10,12 @@ import { motion } from "framer-motion";
 import { GameAudios } from "@/shared/aux-classes";
 
 import styles from "./loginPage.module.css";
+import { useRouter } from "next/navigation";
 
 
 export default function Page() {
+
+  const router = useRouter()
 
   const gameAudio = new GameAudios()
 
@@ -21,6 +24,12 @@ export default function Page() {
     gameAudio.introSongMusicStart()
 
   }
+
+  const goNextPage = ():void => {
+    console.log("hello")
+    router.push("/lobby")
+  }
+
 
 
   return (
@@ -35,24 +44,24 @@ export default function Page() {
         <div className={styles.title}> </div>
         <div className={styles.btn_container}>
 
-          <Link href={"/lobby/room"}>
+          <Link href={"/lobby/404"}>
             <Button
-              cKBtn={false}
+              cKBtn={true}
               btnText={"Local"}
               className={styles.btn}
               CKColorSchema="green"
             />
           </Link>
-
-          <Link href={"/lobby"}>
             <Button
-              cKBtn={false}
+              cKBtn={true}
               btnText={"Online"}
               className={styles.btn}
               CKColorSchema="green"
-              onClick={() => activateAudio()}
+              onClick={() => {
+                activateAudio()
+                goNextPage()
+              }}
             />
-          </Link>
         </div>
       </motion.div>
     </div>
