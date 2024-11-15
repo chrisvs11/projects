@@ -190,7 +190,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
               </div>
               <div className={styles.btn_container}>
               {currentUsername === currentLobby.hostUsername && <Button
-                  btnText={!isClick ? `START`: `Processing...`}
+                  btnText={currentLobby.members.length < currentLobby.maxPlayers ? "Pending Players" : !isClick ? `START`: `Processing...`}
                   className={`${styles.btn} continue ${currentLobby.members.length < currentLobby.maxPlayers && styles.no_active_btn}`}
                   cKBtn
                   onClick={() => startGame()}

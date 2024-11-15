@@ -131,17 +131,15 @@
 
 .exit {
   position: absolute;
-  width: 100%;
   z-index: 2;
   bottom: 10px;
   left: 30px;
   padding: 12px;
-  width: 100%;  
 }
 
 .no_active_btn {
-  background-color: grey !important;
-  pointer-events: none;
+  background-color: #747474 !important;
+  pointer-events: none !important;
 }
 
 
@@ -201,7 +199,6 @@
     position: relative;
     display: flex;
     justify-content: center;
-    width: 100%;
     bottom: 82px;
     left: -83px;
   }

@@ -79,6 +79,7 @@
 @media screen and (max-width:350px) {
     .card {
         width: 500px;
+        height: 500px;
     }
 
     .input {
