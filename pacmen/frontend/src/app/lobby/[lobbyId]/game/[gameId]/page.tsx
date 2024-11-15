@@ -210,19 +210,21 @@ export default function Page({
       //Item Handler Phase
       const item = getMapTileItem(pacmanState.next, mapTiles);
       let points: number = pointsHash[item || GameItem.EMPTY];
+      let powerUpTimerSounds: NodeJS.Timeout
+      let powerUpTimerGhost:NodeJS.Timeout
       if (item === GameItem.POWER_UP && String(game.pacmanId) === playerId) {
-        gameAudios.playPowerUpSounds(POWER_UP_TIME);
+        powerUpTimerSounds = gameAudios.playPowerUpSounds(POWER_UP_TIME);
         scareGhosts(gamePlayerStates, game.id);
 
         if (timerRef.current) clearTimeout(timerRef.current);
 
-        const timerId = setTimeout(() => {
+        powerUpTimerGhost = setTimeout(() => {
           if (latestGamePlayerStateRef.current) {
             returnToNormalGhosts(latestGamePlayerStateRef.current, gameId);
           }
         }, POWER_UP_TIME);
 
-        timerRef.current = timerId;
+        timerRef.current = powerUpTimerGhost;
       }
       setPacmanScore((prev) => prev + points);
 
@@ -241,6 +243,11 @@ export default function Page({
       if (points > 0) {
         setPacmanScore((prev) => prev + points);
       }
+
+      return (() => {
+        clearTimeout(powerUpTimerSounds)
+        clearTimeout(powerUpTimerGhost)
+      })
     
   }, [gamePlayerStates, game, direction, mapTiles]);
 

@@ -103,13 +103,15 @@ export class GameAudios {
     }
   }
 
-  playPowerUpSounds = (time:number) => {
+  playPowerUpSounds = (time:number): NodeJS.Timeout=> {
     this.frightMovingMusicStart();
     this.ghostSirenMusicStop();
-    setTimeout(() => {
+    const timerId:NodeJS.Timeout = setTimeout(() => {
       this.frightMovingMusicStop();
       this.ghostSirenMusicStart();
     }, time);
+    return timerId  
   } 
+  
 
 };
