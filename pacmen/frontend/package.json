@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chakra-ui/next-js": "^2.4.2",
     "@chakra-ui/react": "^2.10.4",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
@@ -17,7 +16,7 @@
     "axios": "^1.7.7",
     "firebase": "^10.13.1",
     "formik": "^2.4.6",
-    "framer-motion": "^11.5.4",
+    "framer-motion": "^11.11.17",
     "next": "14.2.10",
     "next-video": "^1.1.4",
     "next-videos": "^1.4.1",
