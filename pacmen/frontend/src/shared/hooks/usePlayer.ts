@@ -1,14 +1,16 @@
 import { useState } from "react";
 
-import { CellType, Coordinates, Direction, GameMap, Player } from "../types";
+import { CellType, Coordinates, Direction, GameMap, Member, Player } from "../types";
 
 import { useRecoilState } from "recoil";
 
 import { PlayerIdState } from "../states";
+import { useUsername } from "./username.hook";
 
 export const usePlayer = () => {
   const [direction, setDirection] = useState<Direction>(Direction.UP);
   const [playerId,setPlayerId] = useRecoilState(PlayerIdState)
+  const {username} = useUsername()
   const [player,setPlayer] = useState<Player|null>(null)
 
   const getNextCoordinates = (
@@ -53,12 +55,21 @@ export const usePlayer = () => {
     return current.col === 0;
   };
 
+  const  setId = (members:Member[]) => {
+    const playerIndex = members.findIndex(member => member.username === username)
+    if(playerIndex < 0 ) return 
+    console.log(`setting player ${username} to id ${playerIndex+1}`)
+    setPlayerId(String(playerIndex+1))
+  }
+
+  
+
   return {
     setDirection,
     direction,
     getNextCoordinates,
     playerId,
-    setPlayerId,
+    setId,
     player,
     setPlayer
   };

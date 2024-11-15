@@ -40,7 +40,7 @@ export const NumPropertyContainer: FC<NumPropertyContainerProps> = ({
         <Button
           btnText="<"
           cKBtn={false}
-          className={styles.property_btn}
+          className={`${styles.property_btn} ${propertyValue === propertyBottom && styles.block} `}
           type="button"
           onClick={() => modifyProperty("down")}
         />
@@ -50,7 +50,7 @@ export const NumPropertyContainer: FC<NumPropertyContainerProps> = ({
         <Button
           btnText=">"
           cKBtn={false}
-          className={styles.property_btn}
+          className={`${styles.property_btn} ${propertyValue === propertyTop && styles.block} `}
           type="button"
           onClick={() => modifyProperty("up")}
         />

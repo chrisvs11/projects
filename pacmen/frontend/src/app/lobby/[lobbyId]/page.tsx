@@ -31,19 +31,22 @@ const TILE_WIDTH: number = 10;
 
 export default function Page({ params }: { params: { lobbyId: string } }) {
   const gameAudios = new GameAudios();
-  const [currentLobby, setCurrentLobby] = useState<Lobby | null>(null);
+  //Page states 
   const [isClick,setIsClicked] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentLobby, setCurrentLobby] = useState<Lobby | null>(null);
+  const [tileWidth, setTileWidth] = useState<number>(TILE_WIDTH);
+  const [windowWidth, setWindowWidth] = useState<number>(0);
+  //Custom hooks
   const { gameMap, updateGameMap, mapTiles, setMapTiles } = useMapLayout();
   const { getNPCName } = useNPC();
   const { setLobbyId } = useLobbyId();
   const { addNPCToLobby, leaveLobby, createGame } = useCustomQuery();
   const { username: currentUsername, setUsername } = useUsername();
-  const { playerId, setPlayerId } = usePlayer();
-  const [tileWidth, setTileWidth] = useState<number>(TILE_WIDTH);
-  const [windowWidth, setWindowWidth] = useState<number>(0);
+  const { playerId,setId } = usePlayer();
   const router = useRouter();
 
+  //Page logic
   async function setGameMap() {
     try {
       if (!currentLobby) throw new Error("Cannot find lobby number");
@@ -64,7 +67,6 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
     }
   }
 
- 
 
   const addNPC = () => {
     if (!currentLobby) return;
@@ -94,18 +96,14 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
     if (!currentLobby) return;
 
     setGameMap()
-
+    
     if(currentLobby.gameStarted && currentLobby.gameId) {
       console.log(`ENTERING GAME....${currentLobby.gameId}`)
       router.push(`/lobby/${currentLobby.id}/game/${currentLobby.gameId}`);
     }
-    if (currentUsername && !playerId) {
-      const playerIndex: number = currentLobby.members.findIndex(
-        (member) => member.username === currentUsername
-      );
-      if (playerIndex >= 0) {
-        setPlayerId(String(playerIndex + 1));
-      }
+
+    if(!playerId) {
+      setId(currentLobby.members)
     }
   }, [currentLobby]);
 
@@ -122,9 +120,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   const errorFn = () => {
     router.push("/404");
   };
-
   
-
   useEffect(() => {
     const lobbySubscription = firebaseService.getRealTimeDocument(
       CollectionNames.LOBBIES,

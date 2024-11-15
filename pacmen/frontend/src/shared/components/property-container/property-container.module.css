@@ -41,7 +41,8 @@
 }
 
 .property_btn:hover {
-    color: black;
+    color: yellow;
+    scale: 1.1;
 }
 
 
@@ -61,4 +62,9 @@
 .property_value {
     font-size: 42px;
     color: white;
+}
+
+.block {
+    color:grey;
+    pointer-events: none;
 }

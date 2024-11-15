@@ -41,7 +41,6 @@ import {
 
 import { GameAudios } from "@/shared/aux-classes";
 
-
 const firebaseService = new FirebaseService();
 
 const TILE_WIDTH: number = 20;
@@ -75,6 +74,8 @@ export default function Page({
   const [pacmanScore, setPacmanScore] = useState<number>(0);
   const [ghostScore, setGhostScore] = useState<number>(0);
   const [gamePlayerStates, setGamePlayerStates] = useState<GamePlayerStates>();
+  const [tileWidth, setTileWidth] = useState<number>(TILE_WIDTH);
+  const [windowWidth, setWindowWidth] = useState<number>(0);
   const latestGamePlayerStateRef = useRef(gamePlayerStates);
   const { game, setGame } = useGame();
   const {
@@ -92,13 +93,10 @@ export default function Page({
     playerId,
     player,
     setPlayer,
-    setPlayerId,
   } = usePlayer();
   const { scareGhosts, returnToNormalGhosts } = usePacman();
   const { moveYourAvatar, leaveLobby } = useCustomQuery();
   const { collisionHandler } = useCollisionHandler();
-  const [tileWidth, setTileWidth] = useState<number>(TILE_WIDTH);
-  const [windowWidth, setWindowWidth] = useState<number>(0);
   const router = useRouter();
 
   const eventListenerKeyDown = (e: KeyboardEvent) => {
@@ -117,7 +115,6 @@ export default function Page({
     }
     setLobbyId(null);
     setPlayer(null);
-    setPlayerId("");
     gameAudios.ghostSirenMusicStop();
 
     router.push("/");
@@ -128,25 +125,34 @@ export default function Page({
   };
 
   useEffect(() => {
+    const newTileWidth =
+      windowWidth >= 1000 ? TILE_WIDTH : windowWidth >= 600 ? 15 : 10;
+    setTileWidth(newTileWidth);
+  }, [windowWidth]);
+
+  useEffect(() => {
     if (!gameMap || !gamePlayerStates || !game) return;
-  
+
     if (game.gameState === GameState.END) return;
-  
+
     if (!player) setPlayer(game.players[parseInt(playerId) - 1]);
-  
+
     let animationFrameId: number;
-  
+
     const renderFrame = () => {
       frameCountRef.current += 1;
-  
+
       if (frameCountRef.current % WAIT_FRAMES === 0) {
         if (game.gameState === GameState.ON_GOING) {
           const currentCoordinates = gamePlayerStates[playerId].next;
-          const nextCoordinates = getNextCoordinates(currentCoordinates, gameMap);
-          const canAvatarMoved = nextCoordinates !== currentCoordinates;
-  
-          if (!canAvatarMoved) return;
-  
+          const nextCoordinates = getNextCoordinates(
+            currentCoordinates,
+            gameMap
+          );
+          // const canAvatarMoved = nextCoordinates !== currentCoordinates; // why does the websockets does not work when this is on
+
+          // if (!canAvatarMoved) return;
+
           moveYourAvatar({
             playerNumber: playerId,
             gameId: gameId,
@@ -157,9 +163,11 @@ export default function Page({
           });
         } else if (game.gameState === GameState.RESTART) {
           gameAudios.ghostSirenMusicStop();
-          if (gamePlayerStates[playerId].next !== gamePlayerStates[playerId].start)
+          if (
+            gamePlayerStates[playerId].next !== gamePlayerStates[playerId].start
+          )
             return;
-  
+
           moveYourAvatar({
             playerNumber: playerId,
             gameId: gameId,
@@ -170,18 +178,22 @@ export default function Page({
           });
         }
       }
-  
+
       animationFrameId = requestAnimationFrame(renderFrame);
     };
-  
+
     animationFrameId = requestAnimationFrame(renderFrame);
-  
+
     return () => cancelAnimationFrame(animationFrameId);
   }, [gameMap, gamePlayerStates, game, direction]);
 
   const errorFn = () => {
     router.push("404");
   };
+
+  function resize() {
+    setWindowWidth(window.innerWidth);
+  }
 
   useEffect(() => {
     if (!game || !gamePlayerStates || !mapTiles) return;
@@ -194,13 +206,6 @@ export default function Page({
       return;
     }
 
-    const currentPositions = Object.fromEntries(
-      Object.entries(gamePlayerStates).map(([id, next]) => [id, next])
-    );
-    const hasPositionChange = Object.keys(currentPositions).some(
-      (key) => prevPositionRef.current[key] !== currentPositions[key]
-    );
-    if (hasPositionChange) {
       const pacmanState = gamePlayerStates[String(game.pacmanId)];
 
       //Item Handler Phase
@@ -237,16 +242,8 @@ export default function Page({
       if (points > 0) {
         setPacmanScore((prev) => prev + points);
       }
-
-      prevPositionRef.current = currentPositions;
-    }
+    
   }, [gamePlayerStates, game, direction, mapTiles]);
-
-  useEffect(() => {
-    const newTileWidth =
-      windowWidth >= 1000 ? TILE_WIDTH : windowWidth >= 600 ? 15 : 10;
-    setTileWidth(newTileWidth);
-  }, [windowWidth]);
 
   useEffect(() => {
     const gameSubscription = firebaseService.getRealTimeDocument(
@@ -266,16 +263,14 @@ export default function Page({
     if (gameMap) setMapTiles(gameMap.tiles);
 
     window.addEventListener("keydown", eventListenerKeyDown);
+
     setLoading(false);
     gameAudios.startGameMusic();
     gameAudios.introSongMusicStop();
-    setTimeout(() => {
+
+    const timerId = setTimeout(() => {
       gameAudios.ghostSirenMusicStart();
     }, 5000);
-
-    function resize() {
-      setWindowWidth(window.innerWidth);
-    }
 
     setWindowWidth(window.innerWidth);
 
@@ -286,80 +281,79 @@ export default function Page({
       movesSubscription();
       window.removeEventListener("keydown", eventListenerKeyDown);
       window.removeEventListener("resize", resize);
+      clearTimeout(timerId);
     };
   }, []);
 
   return (
     <div className={styles.body}>
       <div></div>
-      {!loading &&
-        game?.gameState !== GameState.END &&
-        game &&
-        game.lives >= 0 && (
-          <div className={`card ${styles.card}`}>
-            <div className={styles.game_metadata}>
-              <div className={styles.game_stats_card}>
-                <PacmanSprite state={PlayerState.ALIVE} velocity={1 - 1 / 3} />
-                <p>x{game?.lives < 0 ? 0 : game?.lives}</p>
-              </div>
-              <div className={styles.game_stats_card}>
-                Pacman Score: {pacmanScore} pts
-              </div>
-              <div className={styles.game_stats_card}>
-                Ghost Score: {ghostScore} pts
-              </div>
-              <div className={styles.game_stats_card}>
-                Timer: {Math.max(game?.playtime, 0)} s
-              </div>
+      {!loading && game && game?.gameState !== GameState.END && (
+        <div className={`card ${styles.card}`}>
+          <div className={styles.game_metadata}>
+            <div className={styles.game_stats_card}>
+              <PacmanSprite state={PlayerState.ALIVE} velocity={1 - 1 / 3} />
+              <p>x{game.lives < 0 ? 0 : game?.lives}</p>
             </div>
-            <div
-              className={styles.parent}
-              id="parent"
-              style={{ position: "relative" }}
-            >
-              {gameMap && mapTiles && (
-                <MapLayout
-                  mapTiles={mapTiles}
-                  tilesHeight={tileWidth}
-                  rows={gameMap.rows}
-                  cols={gameMap.cols}
-                />
-              )}
-              {gamePlayerStates &&
-                gameMap &&
-                mapTiles &&
-                game?.players.map((player) => {
-                  const playerStat = gamePlayerStates[String(player.id)];
-                  const commonProps = {
-                    offsetX: MAP_OFFSET.X,
-                    offsetY: MAP_OFFSET.Y,
-                    playerNum: player.id,
-                    ghostType: player.type,
-                    role: player.role,
-                    scale: 0.7,
-                    coordinatesToRecCoordinates: () =>
-                      getRecCoordinatesOfElementById(
-                        playerStat.next,
-                        TILE_WIDTH
-                      ),
-                    mapTiles: mapTiles,
-                    cols: gameMap.cols,
-                  };
-
-                  return (
-                    <PlayerAvatar
-                      key={player.id}
-                      {...commonProps}
-                      coordinates={playerStat.next}
-                      state={playerStat.state}
-                      direction={playerStat.direction || Direction.RIGHT}
-                      className={styles.avatar}
-                    />
-                  );
-                })}
+            <div className={styles.game_stats_card}>
+              Pacman Score: {pacmanScore} pts
+            </div>
+            <div className={styles.game_stats_card}>
+              Ghost Score: {ghostScore} pts
+            </div>
+            <div className={styles.game_stats_card}>
+              Timer: {Math.max(game.playtime, 0)} s
+            </div>
+            <div className={styles.game_stats_card}>
+              You are player{playerId}!
             </div>
           </div>
-        )}
+          <div
+            className={styles.parent}
+            id="parent"
+            style={{ position: "relative" }}
+          >
+            {gameMap && mapTiles && (
+              <MapLayout
+                mapTiles={mapTiles}
+                tilesHeight={tileWidth}
+                rows={gameMap.rows}
+                cols={gameMap.cols}
+              />
+            )}
+            {gamePlayerStates &&
+              gameMap &&
+              mapTiles &&
+              game?.players.map((player: Player) => {
+                const playerStat = gamePlayerStates[String(player.id)];
+                const commonProps = {
+                  offsetX: MAP_OFFSET.X,
+                  offsetY: MAP_OFFSET.Y,
+                  playerNum: player.id,
+                  ghostType: player.type,
+                  role: player.role,
+                  scale: 0.7,
+                  coordinatesToRecCoordinates: () =>
+                    getRecCoordinatesOfElementById(playerStat.next, TILE_WIDTH),
+                  mapTiles: mapTiles,
+                  cols: gameMap.cols,
+                };
+                console.log(player.next);
+
+                return (
+                  <PlayerAvatar
+                    key={player.id}
+                    {...commonProps}
+                    coordinates={playerStat.next}
+                    state={playerStat.state}
+                    direction={playerStat.direction || Direction.RIGHT}
+                    className={styles.avatar}
+                  />
+                );
+              })}
+          </div>
+        </div>
+      )}
       {!loading && game && game.gameState === GameState.END && (
         <div className={styles.gameOver_card}>
           <p>GAME OVER</p>

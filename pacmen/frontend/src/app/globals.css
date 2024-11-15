@@ -52,25 +52,26 @@
   background-color: #1bade4 !important;
   transition: 0.3s;
   color: white !important;
+  transition: 0.2s linear !important;
 }
 
 .continue:hover {
   background-color: yellow !important;
   letter-spacing: 0.5px;
-  scale: 1.1;
+  scale: 1.1 !important;
   color: black !important;
 }
 
 .cancel {
   background-color: rgb(116, 116, 116) !important;
   color: white !important;
-  transition: 0.2s linear;
+  transition: 0.2s linear !important;
 }
 
 .cancel:hover {
   background-color: rgb(255, 0, 0) !important;
   color: rgb(255, 255, 255) !important;
-  scale: 1.1;
+  scale: 1.1 !important;; 
 }
 
 .audio_btn_container {

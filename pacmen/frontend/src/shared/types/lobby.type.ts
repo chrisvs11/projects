@@ -24,7 +24,7 @@ export enum LobbyType {
   LOCAL = 'local',
 }
 
-interface Member {
+export interface Member {
     username:string,
     type:GhostTypes,
 }
