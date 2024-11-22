@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import styles from "./lobby-session.module.css";
-
-import FirebaseService from "@/shared/services/firebase-service";
 
 import PacmanLoader from "react-spinners/PacmanLoader";
 
@@ -19,20 +17,23 @@ import {
   useUsername,
 } from "@/shared/hooks";
 
-import { CollectionNames, GameMap, Lobby } from "@/shared/types";
+import { CollectionName, GameMap, Lobby } from "@/shared/types";
 
 import { MemberCard, MapLayout, Button } from "@/shared/components";
 
 import { GameAudios } from "@/shared/aux-classes";
 
-const firebaseService = new FirebaseService();
+import { BASE_URL, firebaseService } from "@/shared/services";
+
 
 const TILE_WIDTH: number = 10;
 
+const LOADING_LOBBY_TIME: number = 2000;
+
 export default function Page({ params }: { params: { lobbyId: string } }) {
   const gameAudios = new GameAudios();
-  //Page states 
-  const [isClick,setIsClicked] = useState<boolean>(false)
+  //Page states
+  const [isClick, setIsClicked] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentLobby, setCurrentLobby] = useState<Lobby | null>(null);
   const [tileWidth, setTileWidth] = useState<number>(TILE_WIDTH);
@@ -42,31 +43,23 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   const { getNPCName } = useNPC();
   const { setLobbyId } = useLobbyId();
   const { addNPCToLobby, leaveLobby, createGame } = useCustomQuery();
-  const { username: currentUsername, setUsername } = useUsername();
-  const { playerId,setId } = usePlayer();
+  const { username: currentUsername } = useUsername();
+  const { setId } = usePlayer();
   const router = useRouter();
 
-  //Page logic
-  async function setGameMap() {
-    try {
-      if (!currentLobby) throw new Error("Cannot find lobby number");
-
-      const gameMap = (await firebaseService.getData(
-        CollectionNames.MAPS,
-        currentLobby.mapId
-      )) as GameMap; 
-
-      updateGameMap(gameMap)
-      setTimeout(() => {
-        setLoading(false)
-      }, 2000);
-
-    } catch (e) {
-      console.error("Error: ", e);
-      return null
-    }
+  //Start Page Logic
+  async function getGameMap(mapId: string): Promise<GameMap> {
+    const gameMap = await firebaseService.getData<GameMap>(
+      CollectionName.MAPS,
+      mapId
+    );
+    if (!gameMap) throw new Error("ERROR GETTING THE MAP...");
+    return gameMap;
   }
 
+  const errorFn = () => {
+    router.push("/404");
+  };
 
   const addNPC = () => {
     if (!currentLobby) return;
@@ -77,15 +70,31 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   const exitLobby = (username: string, lobbyId: string) => {
     leaveLobby({ username, lobbyId });
     setLobbyId(null);
-    setUsername("");
     router.push("/");
   };
 
-  const startGame = () => {
-    setIsClicked(true)
-    createGame({ lobbyId: params.lobbyId });
+  const prepareGame = () => {
+    if(!currentLobby) return 
+    setIsClicked(true);
+    createGame({
+      lobbyId: currentLobby.id
+    })
   };
 
+const unloadHandler = useCallback(() => {
+  const navigationEntries = performance.getEntriesByType("navigation");
+  
+  if(navigationEntries.length === 0) return 
+
+  const navigationTiming = navigationEntries[0] as PerformanceNavigationTiming
+
+  if(navigationTiming.type === "reload") return 
+  if (currentUsername && currentLobby?.id) {
+    navigator.sendBeacon(`${BASE_URL}/lobbies/leave/${currentLobby.id}/${currentUsername}`)
+  }
+}, [currentUsername, currentLobby]);
+
+  //Use Effects
   useEffect(() => {
     const newTileWidth =
       windowWidth >= 700 ? TILE_WIDTH : windowWidth >= 200 ? 8.5 : 6;
@@ -95,51 +104,48 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   useEffect(() => {
     if (!currentLobby) return;
 
-    setGameMap()
-    
-    if(currentLobby.gameStarted && currentLobby.gameId) {
-      console.log(`ENTERING GAME....${currentLobby.gameId}`)
-      router.push(`/lobby/${currentLobby.id}/game/${currentLobby.gameId}`);
-    }
+    getGameMap(currentLobby.mapId).then((value) => {
+      updateGameMap(value);
+    });
 
-    if(!playerId) {
-      setId(currentLobby.members)
-    }
-  }, [currentLobby]);
+    setId(currentLobby.members);
 
-  useEffect(() => {
-    gameAudios.stopAllMusic();
-    gameAudios.introSongMusicStart();
-  }, []);
+    window.addEventListener("beforeunload", unloadHandler);
+
+    setTimeout(() => {
+      setLoading(false);
+    }, LOADING_LOBBY_TIME);
+
+    return () => {
+      window.removeEventListener("beforeunload", unloadHandler);
+    };
+  }, [currentLobby, unloadHandler]);
 
   useEffect(() => {
     if (!gameMap) return;
     setMapTiles(gameMap.tiles);
   }, [gameMap]);
 
-  const errorFn = () => {
-    router.push("/404");
-  };
-  
   useEffect(() => {
     const lobbySubscription = firebaseService.getRealTimeDocument(
-      CollectionNames.LOBBIES,
+      CollectionName.LOBBIES,
       params.lobbyId,
-      (data:Lobby) => setCurrentLobby(data),
+      (data: Lobby) => setCurrentLobby(data),
       () => errorFn()
     );
 
-    setWindowWidth(window.innerWidth)
+    gameAudios.stopAllMusic();
 
+
+    setWindowWidth(window.innerWidth);
     function resize() {
-      setWindowWidth(window.innerWidth)
+      setWindowWidth(window.innerWidth);
     }
-
-    window.addEventListener("resize",resize)
+    window.addEventListener("resize", resize);
 
     return () => {
       lobbySubscription();
-      window.removeEventListener("resize",resize)
+      window.removeEventListener("resize", resize);
     };
   }, []);
 
@@ -177,22 +183,37 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
                   ))}
                   {}
                 </div>
-                {currentUsername === currentLobby.hostUsername && <Button
-                  cKBtn
-                  btnText="👻+"
-                  className={styles.add_btn}
-                  onClick={() => addNPC()}
-                />}
+                {currentUsername === currentLobby.hostUsername && (
+                  <Button
+                    cKBtn
+                    btnText="👻+"
+                    className={`${styles.add_btn} ${
+                      currentLobby.members.length >= currentLobby.maxPlayers
+                        ? styles.disabled
+                        : ""
+                    }`}
+                    onClick={() => addNPC()}
+                    disabled={
+                      currentLobby.members.length >= currentLobby.maxPlayers
+                    }
+                  />
+                )}
               </div>
               <div className={styles.btn_container}>
-              {currentUsername === currentLobby.hostUsername && <Button
-                  btnText={currentLobby.members.length < currentLobby.maxPlayers ? "Pending Players" : !isClick ? `START`: `Processing...`}
-                  className={`${styles.btn} continue ${currentLobby.members.length < currentLobby.maxPlayers && styles.no_active_btn}`}
-                  cKBtn
-                  onClick={() => startGame()}
-                  disabled = {isClick}
-                  cssStyle={{pointerEvents:`${isClick ? "none" :"auto"}`}}
-                />}
+                {currentUsername === currentLobby.hostUsername && (
+                  
+                  <Button
+                    btnText={!isClick ? `START PACMAN ROULETTE` : `Processing...`}
+                    className={`${styles.btn} continue ${
+                      currentLobby.members.length < currentLobby.maxPlayers &&
+                      styles.no_active_btn
+                    }`}
+                    cKBtn
+                    onClick={() => prepareGame()}
+                    disabled={isClick}
+                    cssStyle={{ pointerEvents: `${isClick ? "none" : "auto"}` }}
+                  />
+                )}
               </div>
             </div>
 
@@ -233,7 +254,9 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
             btnText="EXIT"
             className={` ${styles.btn}  cancel`}
             cKBtn
-            onClick={() => exitLobby(currentUsername, currentLobby?.uuid||"undefined")}
+            onClick={() =>
+              exitLobby(currentUsername, currentLobby?.uuid || "undefined")
+            }
           />
         </div>
       )}

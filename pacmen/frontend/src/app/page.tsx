@@ -30,8 +30,6 @@ export default function Page() {
     router.push("/lobby")
   }
 
-
-
   return (
     <div className={styles.loginBody}>
 

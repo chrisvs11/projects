@@ -97,3 +97,11 @@
   background-color: #ffb8ff !important;
   color: black;
 }
+
+@media screen and (max-width:350px) {
+  .audio_btn_container {
+    top: 15px;
+    left: 15px;
+    scale: 0.6;
+  }
+}

@@ -19,7 +19,7 @@ import { FirebaseApp, initializeApp } from "firebase/app";
 
 // import { getAnalytics } from "firebase/analytics";
 
-import { CollectionNames } from "@/shared/types";
+import { CollectionName } from "@/shared/types";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAR0gvUaCaGeNeUPEmYdt3FPg0CuNO7Z1E",
@@ -35,7 +35,7 @@ const app: FirebaseApp = initializeApp(firebaseConfig);
 
 // const analytics = getAnalytics(app);
 
-export default class FirebaseService {
+class FirebaseService {
   private database = getFirestore(app);
 
   constructor() {}
@@ -43,14 +43,14 @@ export default class FirebaseService {
   getDatabase = this.database;
 
   private getCollectionReference(
-    CollectionName: CollectionNames
+    CollectionName: CollectionName
   ): CollectionReference {
     const collectionRef = collection(this.database, CollectionName);
     return collectionRef;
   }
 
   private getDocReference(
-    collectionName: CollectionNames,
+    collectionName: CollectionName,
     entityId: string
   ): DocumentReference {
     const ref: DocumentReference = doc(this.database, collectionName, entityId);
@@ -59,7 +59,7 @@ export default class FirebaseService {
   }
 
   async getData<T>(
-    collectionName: CollectionNames,
+    collectionName: CollectionName,
     entityId: string
   ): Promise<T | undefined> {
     try {
@@ -78,7 +78,7 @@ export default class FirebaseService {
   }
 
   async getAllDocsInCollection<T>(
-    collectionName: CollectionNames
+    collectionName: CollectionName
   ): Promise<T[]> {
     try {
       const collectionRef = this.getCollectionReference(collectionName);
@@ -96,8 +96,33 @@ export default class FirebaseService {
     }
   }
 
+  async getDocByQuery<T>(
+    collectionName: CollectionName,
+    propToQuery: string,
+    queryValue: string | number
+  ): Promise<T|null> {
+    try {
+      const collectionRef: CollectionReference =
+        this.getCollectionReference(collectionName);
+
+      const q = query(collectionRef, where(propToQuery, "==", queryValue));
+
+      const querySnapshot = await getDocs(q);
+      const doc = querySnapshot.docs[0]
+
+      if(!doc) return null
+
+      const result = doc.data() as T;
+      return {id:doc.id, ...result};
+
+    } catch (e) {
+      console.error("Error", e);
+      return null
+    }
+  }
+
   async getDocByName<T>(
-    CollectionName: CollectionNames,
+    CollectionName: CollectionName,
     name: string
   ): Promise<T | undefined> {
     try {
@@ -120,8 +145,8 @@ export default class FirebaseService {
   }
 
   getRealTimeDocuments<T>(
-    collectionName: CollectionNames,
-    setDataState: (value:T[]) => void
+    collectionName: CollectionName,
+    setDataState: (value: T[]) => void
   ): { unsubscribe: Unsubscribe; data: T[] } {
     const colRef = this.getCollectionReference(collectionName);
     let realTimeData: T[] = [];
@@ -129,17 +154,17 @@ export default class FirebaseService {
       realTimeData = [];
       querySnapshot.forEach((doc) => {
         const id = doc.id;
-        const finalData:T = {id,...doc.data()} as T
+        const finalData: T = { id, ...doc.data() } as T;
         realTimeData.push(finalData);
       });
       setDataState(realTimeData);
     });
 
-     return { unsubscribe, data: realTimeData };
+    return { unsubscribe, data: realTimeData };
   }
 
   getRealTimeDocument<T>(
-    CollectionName: CollectionNames,
+    CollectionName: CollectionName,
     entityId: string,
     setDataState: (value: T) => void,
     errorFn: () => void
@@ -157,3 +182,5 @@ export default class FirebaseService {
     return unsubscribe;
   }
 }
+
+export const firebaseService = new FirebaseService()

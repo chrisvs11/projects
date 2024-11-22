@@ -34,18 +34,19 @@ export interface LoobyJoinOptions {
 }
 
 
-export interface GamePowerUpUpdateOptions {
-  gameId: string;
+export interface GameUpdateOption {
+  gameId:string,
+}
+
+export interface GamePowerUpUpdateOptions  extends GameUpdateOption{
   powerUpState: PlayerState;
 }
 
-export interface GameScoreUpdateOptions {
-  gameId: string;
+export interface GameScoreUpdateOptions extends GameUpdateOption {
   points: number;
 }
 
-export interface GameStateUpdateOptions {
-  gameId: string;
+export interface GameStateUpdateOptions extends GameUpdateOption{
   state: string;
 }
 
@@ -55,3 +56,12 @@ export interface LobbyMemberUpdateOptions {
   ghostType:string,
 }
 
+
+export interface GamePlayerReadyUpdate extends GameUpdateOption {
+  username:string
+}
+
+
+export interface GameStartOptions extends GameUpdateOption {
+  lobbyId:string
+}

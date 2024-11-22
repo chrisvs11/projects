@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-import { CollectionNames, Lobby, LobbyType } from "../../../shared/types";
+import { CollectionName, Lobby, LobbyType } from "../../../shared/types";
 
 import { Button } from "../../../shared/components";
 
@@ -9,15 +9,12 @@ import styles from "./public.module.css";
 
 import Link from "next/link";
 
-import FirebaseService from "@/shared/services/firebase-service";
-
 import RingLoader from "react-spinners/RingLoader";
 
 import { useLobbyId } from "@/shared/hooks";
 
 import { useRouter } from "next/navigation";
-
-const firebaseService = new FirebaseService();
+import { firebaseService } from "@/shared/services";
 
 const playerImage: string =
   "https://seeklogo.com/images/P/pacman-ghost-logo-4E0E79293D-seeklogo.com.png";
@@ -35,7 +32,7 @@ export default function LobbyPage() {
 
   useEffect(() => {
     const { unsubscribe } = firebaseService.getRealTimeDocuments(
-      CollectionNames.LOBBIES,
+      CollectionName.LOBBIES,
       (data:Lobby[]) => {
         setFetchLobby(data);
         setTimeout(() => {

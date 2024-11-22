@@ -1,0 +1,47 @@
+.card {
+    display: grid;
+    grid-template-rows: 0.1fr 0.1fr 1fr 1fr;
+    grid-template-areas: 
+        "selector"
+        "username"
+        "avatar"
+        "ready"
+    ;
+    color: white;
+    align-items: center;
+    justify-items: center;
+    width: 120px;
+    row-gap: 15px;
+    padding: 30px;
+    
+}
+
+.player_avatar {
+    grid-area: avatar;
+    
+}
+
+.username_container {
+    grid-area: username;
+}
+
+.selector {
+    grid-area: selector;
+    visibility: hidden; 
+}
+
+.active_selector {
+    visibility: visible;
+}
+
+.ready_btn {
+    grid-area: ready;
+    width: 80px;
+    background-color: grey !important ;
+    
+}
+
+.disabled {
+    background-color: green !important;
+    pointer-events: none;
+}

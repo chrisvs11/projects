@@ -103,6 +103,12 @@
   width: 100%; 
 }
 
+.pacman_sprite {
+  position: relative;
+  bottom: 8px;
+  scale: 1.2;
+}
+
 
 
 @media screen and (max-width:500px) {

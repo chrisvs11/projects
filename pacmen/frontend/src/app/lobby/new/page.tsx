@@ -3,15 +3,13 @@ import { useCallback, useEffect, useState } from "react";
 
 import styles from "./new.module.css";
 
-import FirebaseService from "@/shared/services/firebase-service";
-
 import Link from "next/link";
 
 import PacmanLoader from "react-spinners/PacmanLoader";
 
 import { useCustomQuery, useLobbyCreation, useUsername } from "@/shared/hooks";
 
-import { CollectionNames, GameMap, LobbyCreationOptions } from "@/shared/types";
+import { CollectionName, GameMap, LobbyCreationOptions } from "@/shared/types";
 
 import {
   Button,
@@ -19,11 +17,9 @@ import {
   MapSelectContainer,
   NumPropertyContainer,
 } from "@/shared/components";
-
+import { firebaseService } from "@/shared/services";
 
 const TILES_WIDTH: number = 10;
-
-const firebaseService: FirebaseService = new FirebaseService();
 
 const WAIT_TIME: number = 1500;
 
@@ -82,36 +78,28 @@ export default function LobbyCreationPage() {
     createLobby(newLobby);
   };
 
-  const getAllGameMaps = useCallback(async () => {
-    try {
-      const gameMaps: GameMap[] = (await firebaseService.getAllDocsInCollection(
-        CollectionNames.MAPS
-      )) as GameMap[];
-      setGameMaps(gameMaps);
-      setTimeout(() => {
-        setLoading(false);
-      }, WAIT_TIME);
-    } catch (error) {
-      console.error("Error getting the map", error);
-    }
+  const getAllMaps = useCallback(async () => {
+    const gameMaps: GameMap[] =
+      await firebaseService.getAllDocsInCollection<GameMap>(
+        CollectionName.MAPS
+      );
+    setGameMaps(gameMaps);
+    setTimeout(() => {
+      setLoading(false);
+    }, WAIT_TIME);
   }, [setGameMaps, setLoading]);
 
   const updateNumPlayer = useCallback(() => {
-    if (gameMaps) {
-      const currentPlayer = players;
-      const currentMap = gameMaps[mapIndex];
-      if (currentPlayer < currentMap.minPlayers) {
-        settingPlayers(currentMap.minPlayers);
-      } else if (currentPlayer > currentMap.maxPlayers) {
-        settingPlayers(currentMap.maxPlayers);
-      }
-    }
-  }, [gameMaps, players, mapIndex, settingPlayers]);
+    if (!gameMaps) return;
+    const { maxPlayers } = gameMaps[mapIndex];
+    const newPlayerNum = players > maxPlayers ? maxPlayers : players;
+    settingPlayers(newPlayerNum);
+  }, [gameMaps, mapIndex, players, settingPlayers]);
 
   useEffect(() => {
-    getAllGameMaps();
+    getAllMaps();
     updateNumPlayer();
-  }, [mapIndex, getAllGameMaps, updateNumPlayer]);
+  }, [mapIndex]);
 
   return (
     <div className="body">
@@ -129,10 +117,10 @@ export default function LobbyCreationPage() {
               />
               <div className={styles.properties_container}>
                 <NumPropertyContainer
-                  propertyTitle={"Players"}
+                  propertyTitle={"Max Players"}
                   propertyValue={players}
                   propertyTop={gameMaps[mapIndex].maxPlayers}
-                  propertyBottom={gameMaps[mapIndex].minPlayers}
+                  propertyBottom={1}
                   step={1}
                   setProperty={settingPlayers}
                 />

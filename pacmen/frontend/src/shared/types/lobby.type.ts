@@ -3,6 +3,7 @@ import { GhostTypes } from "./ghost.type";
 export interface Lobby {
   code: string;
   deletedAt?: Date;
+  lobbyReady:boolean;
   hostUsername: string;
   gameStarted:boolean;
   gameId: string;
@@ -27,4 +28,5 @@ export enum LobbyType {
 export interface Member {
     username:string,
     type:GhostTypes,
+    ready:boolean,
 }

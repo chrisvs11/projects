@@ -8,15 +8,13 @@ import * as Yup from "yup";
 
 import { useRouter } from "next/navigation";
 
-import FirebaseService from "@/shared/services/firebase-service";
-
 import { useEffect, useState } from "react";
 
 import { useLobbyId, useUsername } from "@/shared/hooks";
 
-import { CollectionNames, Lobby } from "@/shared/types";
+import { CollectionName, Lobby } from "@/shared/types";
 
-import { useLobbyJoinMutation } from "@/shared/services";
+import { firebaseService, useLobbyJoinMutation } from "@/shared/services";
 
 import { Button, Input } from "@/shared/components";
 
@@ -26,10 +24,11 @@ interface FormValues {
 
 const restrictedName: string[] = ["blinky", "inky", "pinky", "clyde"];
 
-const firebaseService = new FirebaseService();
-
 export default function Page() {
-  const { username, setUsername } = useUsername();
+  const { setUsername } = useUsername();
+  const [initialValues, setInitialValues] = useState<FormValues>({
+    username:""
+  })
   const { lobbyId } = useLobbyId();
   const router = useRouter();
   const [currentLobby, setCurrentLobby] = useState<Lobby>();
@@ -45,8 +44,15 @@ export default function Page() {
   });
 
   const saveInLocalStorage = (username: string) => {
+    if(typeof window === "undefined") return ""
     localStorage.setItem("username", username);
   };
+
+  const loadUsernameFromStorage = ():string => {
+    const username:string = localStorage.getItem("username") || ""
+    setUsername(username)
+    return username 
+  }
 
   const checkUsernameAvailability = (currentUsername: string): boolean => {
     const member = currentLobby?.members.find(
@@ -76,7 +82,7 @@ export default function Page() {
       if (!lobbyId) return;
 
       const lobby = (await firebaseService.getData(
-        CollectionNames.LOBBIES,
+        CollectionName.LOBBIES,
         lobbyId
       )) as Lobby;
       setCurrentLobby(lobby);
@@ -100,12 +106,7 @@ export default function Page() {
   };
 
   const goBack = () => {
-    console.log("hello");
     router.push("/lobby");
-  };
-
-  const initialValues: FormValues = {
-    username: username,
   };
 
   const { values, errors, touched, handleSubmit, handleChange } =
@@ -117,6 +118,8 @@ export default function Page() {
 
   useEffect(() => {
     fetchLobby();
+    const username = loadUsernameFromStorage()
+    setInitialValues({username})
   }, []);
 
   return (

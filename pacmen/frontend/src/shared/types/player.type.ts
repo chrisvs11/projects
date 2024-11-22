@@ -14,6 +14,7 @@ export enum PlayerState {
 
 export interface Player {
   id: number;
+  ready:boolean;
   username: string;
   type:GhostTypes
   role: GameRole;

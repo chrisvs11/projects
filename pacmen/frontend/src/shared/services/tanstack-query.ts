@@ -4,6 +4,8 @@ import {
   Game,
   GameCreateOptions,
   GameMoveUpdateOptions,
+  GamePlayerReadyUpdate,
+  GameStartOptions,
   GameStateUpdateOptions,
   Lobby,
   LobbyCreationOptions,
@@ -16,7 +18,7 @@ import {
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
 
 
-const baseURL = "https://us-central1-pacmen-e7657.cloudfunctions.net/api"; 
+export const BASE_URL = "https://us-central1-pacmen-e7657.cloudfunctions.net/api"; 
 
 export const useGameCreateMutation = (
   options: UseMutationOptions<Game, Error, GameCreateOptions>
@@ -24,7 +26,7 @@ export const useGameCreateMutation = (
   const mutation = useMutation({
     ...options,
     mutationFn: async (data: GameCreateOptions): Promise<Game> => {
-      const response = await axios.post(`${baseURL}/games/${data.lobbyId}`);
+      const response = await axios.post(`${BASE_URL}/games/${data.lobbyId}`);
       return response.data;
     },
   });
@@ -37,7 +39,7 @@ export const useLobbyCreateMutation = (
   const mutation = useMutation({
     ...options,
     mutationFn: async (data: LobbyCreationOptions): Promise<Lobby> => {
-      const response = await axios.post(`${baseURL}/lobbies`, data, {
+      const response = await axios.post(`${BASE_URL}/lobbies`, data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -55,7 +57,7 @@ export const useLobbyJoinMutation = (
     ...options,
     mutationFn: async (data: LoobyJoinOptions): Promise<Lobby> => {
       const response = await axios.post(
-        `${baseURL}/lobbies/join/${data.lobbyId}/${data.username}`,{
+        `${BASE_URL}/lobbies/join/${data.lobbyId}/${data.username}`,{
           headers:{
             "User-Agent":"PostmanRuntime/7.42.0",
             "Accept":"*/*"
@@ -76,7 +78,7 @@ export const useAddNPCMutation =(
     ...options,
     mutationFn: async (data: LoobyJoinOptions): Promise<Lobby> => {
       const response = await axios.post(
-        `${baseURL}/lobbies/${data.lobbyId}/addNPC/${data.username}`
+        `${BASE_URL}/lobbies/${data.lobbyId}/addNPC/${data.username}`
       );
       return response.data;
     },
@@ -91,7 +93,7 @@ export const useLobbyLeaveMutation = (
     ...options,
     mutationFn: async (data: LoobyJoinOptions): Promise<Lobby> => {
       const response = await axios.put(
-        `${baseURL}/lobbies/leave/${data.lobbyId}/${data.username}`
+        `${BASE_URL}/lobbies/leave/${data.lobbyId}/${data.username}`
       );
       return response.data;
     },
@@ -106,7 +108,7 @@ export const useStatMoveMutation = (
     ...options,
     mutationFn: async (data: GameMoveUpdateOptions): Promise<Player> => {
       const response = await axios.patch(
-        `${baseURL}/games/${data.gameId}/stats/move/${data.playerNumber}`,
+        `${BASE_URL}/games/${data.gameId}/stats/move/${data.playerNumber}`,
         data.move,
         {
           headers: {
@@ -127,7 +129,7 @@ export const useStatStateMutation = (
     ...options,
     mutationFn: async (data: PlayerStateUpdateOptions): Promise<Player> => {
       const response = await axios.patch(
-        `${baseURL}/games/${data.gameId}/stats/state/${data.playerId}/${data.state}`
+        `${BASE_URL}/games/${data.gameId}/stats/state/${data.playerId}/${data.state}`
       );
       return response.data;
     },
@@ -142,7 +144,7 @@ export const useGameStateMutation = (
     ...options,
     mutationFn: async (data: GameStateUpdateOptions): Promise<Game> => {
       const response = await axios.patch(
-        `${baseURL}/games/${data.gameId}/state/${data.state}`
+        `${BASE_URL}/games/${data.gameId}/state/${data.state}`
       );
       return response.data;
     },
@@ -157,10 +159,40 @@ export const useChangeGhostTypeMutation = (
     ...options,
     mutationFn: async (data: LobbyMemberUpdateOptions): Promise<Lobby> => {
       console.log(
-        `${baseURL}/lobbies/${data.lobbyId}/${data.userIndex}/${data.ghostType}`
+        `${BASE_URL}/lobbies/${data.lobbyId}/${data.userIndex}/${data.ghostType}`
       );
       const response = await axios.patch(
-        `${baseURL}/lobbies/${data.lobbyId}/${data.userIndex}/${data.ghostType}`
+        `${BASE_URL}/lobbies/${data.lobbyId}/${data.userIndex}/${data.ghostType}`
+      );
+      return response.data;
+    },
+  });
+  return mutation;
+};
+
+export const useReadyPlayerGameMutation = (
+  options: UseMutationOptions<Game, Error, GamePlayerReadyUpdate>
+) => {
+  const mutation = useMutation({
+    ...options,
+    mutationFn: async (data: GamePlayerReadyUpdate): Promise<Game> => {
+      const response = await axios.patch(
+        `${BASE_URL}/games/${data.gameId}/${data.username}/ready`
+      );
+      return response.data;
+    },
+  });
+  return mutation;
+};
+
+export const useStartGameMutation = (
+  options: UseMutationOptions<Game, Error, GameStartOptions>
+) => {
+  const mutation = useMutation({
+    ...options,
+    mutationFn: async (data: GameStartOptions): Promise<Game> => {
+      const response = await axios.patch(
+        `${BASE_URL}/games/${data.lobbyId}/startGame/${data.gameId}`
       );
       return response.data;
     },

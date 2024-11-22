@@ -7,7 +7,9 @@ import {
   useStatMoveMutation,
   useStatStateMutation,
   useChangeGhostTypeMutation,
-  useAddNPCMutation
+  useAddNPCMutation,
+  useReadyPlayerGameMutation,
+  useStartGameMutation
 } from "../services/tanstack-query";
 
 import { useRouter } from "next/navigation";
@@ -52,7 +54,7 @@ export const useCustomQuery = () => {
 
   const { mutate: createGame } = useGameCreateMutation({
     onSuccess: (data: Game,{lobbyId}) => {
-      router.push(`${lobbyId}/game/${data.id}`);
+      router.push(`${lobbyId}/gamePrep/${data.id}`);
     },
     onError: (e) => {
       console.error("Error creating the game", e.message);
@@ -102,6 +104,18 @@ export const useCustomQuery = () => {
     }
   })
 
+  const {mutate:readyPlayer} = useReadyPlayerGameMutation({
+    onSuccess: () => {
+      console.log("Player Ready")
+    },
+    onError:(error) => {
+      console.error(error)
+    }
+  })
+
+  const {mutate:startGame} = useStartGameMutation({
+  })
+
   return {
     moveYourAvatar,
     modifyPlayerState,
@@ -111,6 +125,8 @@ export const useCustomQuery = () => {
     createLobby,
     updateGameState,
     updateGhostType,
-    addNPCToLobby
+    addNPCToLobby,
+    readyPlayer,
+    startGame,
   };
 };

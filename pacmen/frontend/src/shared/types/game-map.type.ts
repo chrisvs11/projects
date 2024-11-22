@@ -7,7 +7,6 @@ export interface GameMap {
   cols: number;
   tiles: MapTile[];
   maxPlayers: number;
-  minPlayers: number;
 }
 
 export enum CellType {

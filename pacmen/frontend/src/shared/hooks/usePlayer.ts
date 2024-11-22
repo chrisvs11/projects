@@ -32,20 +32,32 @@ export const usePlayer = () => {
 
     const index = gameMap.cols * nextCoordinates.row + nextCoordinates.col;
 
-    if (isRightEdge(current, gameMap.cols) && direction === Direction.RIGHT) {
+    const specialMove = getSpecialMove(current,gameMap.cols)
+
+    if(specialMove) return specialMove
+    
+    if (gameMap.tiles[index].type === CellType.WALL) return current;
+
+    return nextCoordinates;
+  };
+
+  const getSpecialMove = (current:Coordinates,cols:number):Coordinates|null => {
+    
+    const {row} = current
+
+    if (isRightEdge(current, cols) && direction === Direction.RIGHT) {
       console.log("Right Edge Move");
       return { row: row, col: 0 };
     }
 
     if (isLeftEdge(current) && direction === Direction.LEFT) {
       console.log("Left Edge move");
-      return { row, col: gameMap.cols - 1};
+      return { row, col: cols - 1};
     }
 
-    if (gameMap.tiles[index].type === CellType.WALL) return current;
+    return null
 
-    return nextCoordinates;
-  };
+  }
 
   const isRightEdge = (current: Coordinates, cols: number) => {
     return current.col === cols-1;

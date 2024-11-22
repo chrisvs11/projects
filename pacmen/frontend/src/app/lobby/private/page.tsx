@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import Link from "next/link";
 
@@ -15,15 +15,14 @@ import { useFormik } from "formik";
 
 import * as Yup from "yup";
 
-import FirebaseService from "@/shared/services/firebase-service";
-
 import { useLobbyId } from "@/shared/hooks";
 
 import styles from "./privatePage.module.css";
 
-import { Lobby, CollectionNames, GhostTypes, Direction } from "@/shared/types";
+import { Lobby, CollectionName, GhostTypes, Direction } from "@/shared/types";
 
 import { useRouter } from "next/navigation";
+import { firebaseService } from "@/shared/services";
 
 interface FormValues {
   code: string;
@@ -40,7 +39,6 @@ const validationSchema = Yup.object<FormValues>().shape({
     .required("Code cannot be empty"),
 });
 
-const firebaseService = new FirebaseService();
 
 export default function PrivatePage() {
   const [incorrectPassword, setIncorrectPassword] = useState<boolean>(false);
@@ -52,28 +50,29 @@ export default function PrivatePage() {
     router.push("/lobby");
   };
 
-  const checkPassword = useCallback(async (password: string): Promise<Lobby | null> => {
-    try {
-      const fetchedLobbies: Lobby[] =
-        await firebaseService.getAllDocsInCollection(CollectionNames.LOBBIES);
-      const lobby = fetchedLobbies.find(
-        (lobby) => !lobby.deletedAt && lobby.code === password
+  const checkPassword = useCallback(
+    async (password: string): Promise<Lobby | null> => {
+      const lobby: Lobby | null = await firebaseService.getDocByQuery<Lobby>(
+        CollectionName.LOBBIES,
+        "code",
+        password.toLocaleUpperCase()
       );
 
+      console.log(lobby?.members.length);
+      console.log(lobby?.maxPlayers);
       if (lobby && lobby.members.length < lobby.maxPlayers) {
         setIncorrectPassword(false);
         setLobbyId(lobby.id);
+        console.log(lobbyId);
         return lobby;
-      } else {
-        setIncorrectPassword(true);
-        setLobbyId("");
-        return null;
       }
-    } catch (e) {
-      console.error("Error");
+
+      setIncorrectPassword(true);
+      setLobbyId("");
       return null;
-    }
-  },[setLobbyId]);
+    },
+    [setLobbyId]
+  );
 
   const onSubmit = useCallback(
     async (values: FormValues) => {
@@ -89,6 +88,10 @@ export default function PrivatePage() {
       validationSchema,
       onSubmit,
     });
+
+  useEffect(() => {
+    setLobbyId("");
+  }, []);
 
   return (
     <div className="body">
@@ -108,27 +111,33 @@ export default function PrivatePage() {
               error={touched.code ? errors.code : undefined}
             />
             {lobbyId && <div className={styles.valid}>Code Is Valid</div>}
-            {!lobbyId && <Button
-              cKBtn={true}
-              btnText={"ENTER"}
-              className={`${styles.btn} continue`}
-              type="submit"
-            />}
+
+            {!lobbyId && (
+              <Button
+                cKBtn={true}
+                btnText={"ENTER"}
+                className={`${styles.btn} continue`}
+                type="submit"
+              />
+            )}
           </form>
         </div>
         <div className={styles.card_footer}>
           {incorrectPassword && (
             <div className={styles.errorMessage}>
-              Not Available Lobby Found
+              Lobby Not Found
               <div
                 style={{ display: "flex", alignItems: "center", gap: "15px" }}
               >
-                <PacmanSprite
-                  state={0}
-                  velocity={0.9}
-                  scale={1.2}
-                  rotation={180}
-                />
+                <div className={styles.pacman_sprite}>
+                  <PacmanSprite
+                    state={0}
+                    velocity={0.9}
+                    scale={1.2}
+                    rotation={180}
+                  />
+                </div>
+
                 <GhostSprite
                   state={0}
                   type={GhostTypes.BLINKY}

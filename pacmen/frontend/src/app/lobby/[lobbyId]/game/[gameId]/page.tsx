@@ -1,5 +1,4 @@
 "use client";
-import FirebaseService from "@/shared/services/firebase-service";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -8,7 +7,7 @@ import styles from "./game.module.css";
 import { useRouter } from "next/navigation";
 
 import {
-  CollectionNames,
+  CollectionName,
   Direction,
   Game,
   GameItem,
@@ -40,8 +39,7 @@ import {
 } from "@/shared/components";
 
 import { GameAudios } from "@/shared/aux-classes";
-
-const firebaseService = new FirebaseService();
+import { firebaseService } from "@/shared/services";
 
 const TILE_WIDTH: number = 20;
 
@@ -240,14 +238,14 @@ export default function Page({
 
   useEffect(() => {
     const gameSubscription = firebaseService.getRealTimeDocument(
-      CollectionNames.GAMES,
+      CollectionName.GAMES,
       gameId,
       (data: Game) => setGame(data),
       () => errorFn()
     );
 
     const movesSubscription = firebaseService.getRealTimeDocument(
-      CollectionNames.STATS,
+      CollectionName.STATS,
       gameId,
       (data: GamePlayerStates) => setGamePlayerStates(data),
       () => errorFn()
@@ -331,8 +329,6 @@ export default function Page({
                   mapTiles: mapTiles,
                   cols: gameMap.cols,
                 };
-                console.log(player.next);
-
                 return (
                   <PlayerAvatar
                     key={player.id}
