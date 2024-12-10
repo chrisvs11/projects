@@ -6,7 +6,9 @@ import styles from "./pacman-win.module.css"
 export const PacmanWinSlider:FC = () => {
     return (
         <div className={styles.list}>
+        <div className={styles.pacman}>
         <PacmanSprite state={PlayerState.ALIVE} />
+        </div>
         <GhostSprite
           state={PlayerState.ALIVE}
           type={GhostTypes.BLINKY}

@@ -1,6 +1,5 @@
 "use client";
-
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import styles from "./lobby-session.module.css";
 
@@ -8,236 +7,176 @@ import PacmanLoader from "react-spinners/PacmanLoader";
 
 import { useRouter } from "next/navigation";
 
-import {
-  useCustomQuery,
-  useLobbyId,
-  useMapLayout,
-  useNPC,
-  usePlayer,
-  useUsername,
-} from "@/shared/hooks";
+import { useCustomQuery, useGameMap, useScoreTracker } from "@/shared/hooks";
 
-import { CollectionName, GameMap, Lobby } from "@/shared/types";
+import { CollectionName, Lobby } from "@/shared/types";
 
-import { MemberCard, MapLayout, Button } from "@/shared/components";
+import { MapLayout, Button, MembersDisplay } from "@/shared/components";
 
-import { GameAudios } from "@/shared/aux-classes";
+import { firebaseService } from "@/shared/services";
 
-import { BASE_URL, firebaseService } from "@/shared/services";
-
+import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
 
 const TILE_WIDTH: number = 10;
-
 const LOADING_LOBBY_TIME: number = 2000;
 
 export default function Page({ params }: { params: { lobbyId: string } }) {
-  const gameAudios = new GameAudios();
   //Page states
   const [isClick, setIsClicked] = useState<boolean>(false);
+  const { clearAll } = useScoreTracker();
+  const { fetchMap, gameMap } = useGameMap();
   const [loading, setLoading] = useState<boolean>(true);
-  const [currentLobby, setCurrentLobby] = useState<Lobby | null>(null);
-  const [tileWidth, setTileWidth] = useState<number>(TILE_WIDTH);
-  const [windowWidth, setWindowWidth] = useState<number>(0);
+  const [lobby, setLobby] = useState<Lobby | null>(null);
+  const [playerUsername, setPlayerUsername] = useState<string>("");
   //Custom hooks
-  const { gameMap, updateGameMap, mapTiles, setMapTiles } = useMapLayout();
-  const { getNPCName } = useNPC();
-  const { setLobbyId } = useLobbyId();
-  const { addNPCToLobby, leaveLobby, createGame } = useCustomQuery();
-  const { username: currentUsername } = useUsername();
-  const { setId } = usePlayer();
+  const { leaveLobby, createGame } = useCustomQuery();
   const router = useRouter();
-
   //Start Page Logic
-  async function getGameMap(mapId: string): Promise<GameMap> {
-    const gameMap = await firebaseService.getData<GameMap>(
-      CollectionName.MAPS,
-      mapId
-    );
-    if (!gameMap) throw new Error("ERROR GETTING THE MAP...");
-    return gameMap;
-  }
-
   const errorFn = () => {
     router.push("/404");
   };
 
-  const addNPC = () => {
-    if (!currentLobby) return;
-    const npcName = getNPCName(currentLobby);
-    if (npcName) addNPCToLobby({ username: npcName, lobbyId: params.lobbyId });
-  };
-
-  const exitLobby = (username: string, lobbyId: string) => {
-    leaveLobby({ username, lobbyId });
-    setLobbyId(null);
+  const goBackToIntroPage = () => {
     router.push("/");
   };
 
-  const prepareGame = () => {
-    if(!currentLobby) return 
-    setIsClicked(true);
-    createGame({
-      lobbyId: currentLobby.id
-    })
+  const leaveLobbyHandler = () => {
+    leaveLobby({ username: playerUsername, lobbyId: lobby?.id || "" });
+    SessionStorage.eliminateValue("lobbyId");
   };
 
-const unloadHandler = useCallback(() => {
-  const navigationEntries = performance.getEntriesByType("navigation");
-  
-  if(navigationEntries.length === 0) return 
+  const autoRouter = (lobby: Lobby) => {
+    router.push(`${lobby.id}/gamePrep/${lobby.gameId}`);
+  };
 
-  const navigationTiming = navigationEntries[0] as PerformanceNavigationTiming
-
-  if(navigationTiming.type === "reload") return 
-  if (currentUsername && currentLobby?.id) {
-    navigator.sendBeacon(`${BASE_URL}/lobbies/leave/${currentLobby.id}/${currentUsername}`)
-  }
-}, [currentUsername, currentLobby]);
-
-  //Use Effects
-  useEffect(() => {
-    const newTileWidth =
-      windowWidth >= 700 ? TILE_WIDTH : windowWidth >= 200 ? 8.5 : 6;
-    setTileWidth(newTileWidth);
-  }, [windowWidth]);
-
-  useEffect(() => {
-    if (!currentLobby) return;
-
-    getGameMap(currentLobby.mapId).then((value) => {
-      updateGameMap(value);
+  const prepareGame = (lobby: Lobby) => {
+    setIsClicked(true);
+    createGame({
+      lobbyId: lobby.id,
     });
+    setTimeout(() => {
+      setIsClicked(false);
+    });
+  };
 
-    setId(currentLobby.members);
 
-    window.addEventListener("beforeunload", unloadHandler);
 
+  useEffect(() => {
+    if (!lobby) return;
+    fetchMap(lobby?.mapId);
+
+    if (lobby.gameStarted && lobby.gameId) {
+      autoRouter(lobby);
+    }
+  }, [lobby]);
+
+  useEffect(() => {
     setTimeout(() => {
       setLoading(false);
     }, LOADING_LOBBY_TIME);
-
-    return () => {
-      window.removeEventListener("beforeunload", unloadHandler);
-    };
-  }, [currentLobby, unloadHandler]);
+  }, [lobby]);
 
   useEffect(() => {
-    if (!gameMap) return;
-    setMapTiles(gameMap.tiles);
-  }, [gameMap]);
-
-  useEffect(() => {
+    //WebSockets Init
     const lobbySubscription = firebaseService.getRealTimeDocument(
       CollectionName.LOBBIES,
       params.lobbyId,
-      (data: Lobby) => setCurrentLobby(data),
+      (data: Lobby) => setLobby(data),
       () => errorFn()
     );
 
-    gameAudios.stopAllMusic();
+    SessionStorage.setValue("activeMember","true")
 
+    //AudioLogic
+    myAudioProvider.playIntroSongMusic(true);
 
-    setWindowWidth(window.innerWidth);
-    function resize() {
-      setWindowWidth(window.innerWidth);
+    //Load Data from Session Storage
+    const lobbyId: string = SessionStorage.getValue("lobbyId");
+    if (!lobbyId) {
+      console.error("Not part of these lobby");
+      router.push("/lobby");
+      return;
     }
-    window.addEventListener("resize", resize);
+    const saveUsername: string = SessionStorage.getValue("username");
+    if (saveUsername) setPlayerUsername(SessionStorage.getValue("username"));
+
+    clearAll();
 
     return () => {
+      console.log("eliminating web socket...");
       lobbySubscription();
-      window.removeEventListener("resize", resize);
+      myAudioProvider.playIntroSongMusic(false);
     };
   }, []);
 
   return (
     <div className="body">
+      {lobby && !lobby.deletedAt && <div className={styles.clock}>Start Time: {Math.max(lobby.startTime||60,0)} s</div>}
       <div className={`card ${styles.card}`}>
         {!loading && (
-          <div className={styles.title_container}>
+          <div className={styles.header_container}>
             <div className={styles.title}>
-              {!currentLobby?.deletedAt ? "WAITING ROOM" : "Game concluded"}
+              {!lobby?.deletedAt ? "WAITING LOBBY" : "LOBBY CLOSED"}
+              {lobby?.deletedAt && (
+                <div className={styles.img_container}>
+                  <img
+                    src={
+                      "https://archive.org/download/pac-man-art-assortment/PAC-MAN%20BOW.png"
+                    }
+                    alt="Not found"
+                    className={styles.image}
+                  />
+                  <Button
+                    cKBtn={true}
+                    btnText={"BACK"}
+                    className={`${styles.btn} cancel`}
+                    onClick={() => goBackToIntroPage()}
+                  />
+                </div>
+              )}
             </div>
-            <div className={styles.code_container}>
-              {`# ${currentLobby?.code}`}
-            </div>
+            {!lobby?.deletedAt && (
+              <div className={styles.code_container}>{`# ${lobby?.code}`}</div>
+            )}
           </div>
         )}
-        {!loading && currentLobby && !currentLobby.deletedAt ? (
+        {!loading && lobby && !lobby.deletedAt ? (
           <div className={styles.lobby_card}>
             <div className={styles.lobby_container}>
-              <div className={styles.members_container}>
-                <div
-                  className={styles.member_cards_container}
-                  style={{ width: "100%" }}
-                >
-                  {currentLobby?.members.map((member, index) => (
-                    <MemberCard
-                      key={index}
-                      username={member.username}
-                      position={index + 1}
-                      isHost={member.username === currentLobby.hostUsername}
-                      hostUsername={currentLobby.hostUsername}
-                      lobbyId={params.lobbyId}
-                      ghostType={member.type}
-                    />
-                  ))}
-                  {}
-                </div>
-                {currentUsername === currentLobby.hostUsername && (
-                  <Button
-                    cKBtn
-                    btnText="👻+"
-                    className={`${styles.add_btn} ${
-                      currentLobby.members.length >= currentLobby.maxPlayers
-                        ? styles.disabled
-                        : ""
-                    }`}
-                    onClick={() => addNPC()}
-                    disabled={
-                      currentLobby.members.length >= currentLobby.maxPlayers
-                    }
-                  />
-                )}
-              </div>
+              <MembersDisplay lobby={lobby} currentUsername={playerUsername} />
               <div className={styles.btn_container}>
-                {currentUsername === currentLobby.hostUsername && (
-                  
+                {playerUsername === lobby.hostUsername && (
                   <Button
-                    btnText={!isClick ? `START PACMAN ROULETTE` : `Processing...`}
-                    className={`${styles.btn} continue ${
-                      currentLobby.members.length < currentLobby.maxPlayers &&
-                      styles.no_active_btn
-                    }`}
+                    btnText={!isClick ? `START ROULETTE` : `PREPARING...`}
+                    className={`${styles.btn} continue`}
                     cKBtn
-                    onClick={() => prepareGame()}
+                    onClick={() => prepareGame(lobby)}
                     disabled={isClick}
                     cssStyle={{ pointerEvents: `${isClick ? "none" : "auto"}` }}
                   />
                 )}
+                <Button
+                  btnText="🚪 LEAVE"
+                  className={` ${styles.btn}  cancel`}
+                  cKBtn
+                  onClick={() => leaveLobbyHandler()}
+                />
               </div>
             </div>
-
-            <div className={styles.lobby_container}>
-              {gameMap && (
-                <div>
-                  <div className={styles.map_container}>
-                    <div>
-                      {mapTiles && gameMap && (
-                        <MapLayout
-                          mapTiles={mapTiles}
-                          tilesHeight={tileWidth}
-                          cols={gameMap.cols}
-                          rows={gameMap.rows}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div id={styles.map} className={styles.lobby_container}>
+              <div className={styles.map_container}>
+                {gameMap && (
+                  <MapLayout tilesHeight={TILE_WIDTH} gameMap={gameMap} />
+                )}
+              </div>
             </div>
           </div>
         ) : (
-          <div className={styles.loading}>
+          <div
+            className={`${styles.loading} ${
+              lobby?.deletedAt && styles.inactive
+            }`}
+          >
             <PacmanLoader
               color="yellow"
               loading={loading}
@@ -248,18 +187,6 @@ const unloadHandler = useCallback(() => {
           </div>
         )}
       </div>
-      {!loading && (
-        <div className={`${styles.exit}`}>
-          <Button
-            btnText="EXIT"
-            className={` ${styles.btn}  cancel`}
-            cKBtn
-            onClick={() =>
-              exitLobby(currentUsername, currentLobby?.uuid || "undefined")
-            }
-          />
-        </div>
-      )}
     </div>
   );
 }

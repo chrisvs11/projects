@@ -6,7 +6,15 @@ import { Button } from "../../shared/components";
 
 import styles from "./lobbyPage.module.css";
 
+import { myAudioProvider } from "@/shared/aux-classes";
+
+import { useEffect } from "react";
+
 export default function LobbyPage() {
+
+  useEffect(() => {
+    myAudioProvider.playIntroSongMusic(true)
+  },[])
 
   return (
     <div className="body">
@@ -44,7 +52,7 @@ export default function LobbyPage() {
           </div>
         </div>
       </div>
-      <div className={`${styles.btn_cancel}`}>
+      {/* <div className={`${styles.btn_cancel}`}>
           <Link href={"/"}>
             <Button
               cKBtn={true}
@@ -52,7 +60,7 @@ export default function LobbyPage() {
               className={` cancel ${styles.btn}`}
             />
           </Link>
-        </div>
+        </div> */}
     </div>
   );
 }

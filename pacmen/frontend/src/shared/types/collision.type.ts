@@ -1,4 +1,6 @@
+import { GameRole } from "./player.type";
+
 export interface CaughtData {
-    player:"ghost"|"pacman"|null,
+    player:GameRole|null,
     points:number
 }

@@ -5,6 +5,11 @@
     animation: autoRun 4s linear infinite 
     
 }
+
+.pacman {
+    margin-right: 8px;
+
+}
 @keyframes autoRun {
     from {
         left:-450px;

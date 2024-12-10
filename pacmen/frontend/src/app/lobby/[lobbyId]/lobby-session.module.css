@@ -1,9 +1,9 @@
-.title_container {
+.header_container {
   display: flex;
-  justify-content: space-between;
   width: 100%;
   align-items: center;
   margin-bottom: 10px;
+  
 }
 
 .title {
@@ -13,12 +13,10 @@
   font-weight: 600;
   width: 100%;
   text-align: center;
-  font-style: italic;
 }
 
 .code_container {
-  border: 1px solid gray;
-  width: 90%;
+  width: 100%;
   text-align: center;
   display: flex;
   justify-content: center;
@@ -31,15 +29,16 @@
 
 .lobby_card {
   display: flex;
+  max-width: max-content;
   border-radius: 12px;
-  gap: 15px;
 }
 
 .lobby_container {
   display: flex;
+  width: 100%;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   
 }
 
@@ -52,49 +51,9 @@
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
 }
 
-.members_container {
-  border-radius: 12px;
-  background-color: rgba(0, 0, 0, 0.5);
-  width: 325px;
-  height: 275px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.member_cards_container {
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: start;
-  align-items: center;
-}
-
-.member_cards::-webkit-scrollbar {
-  display: 21;
-}
-
-.add_btn {
-  background-color: yellow !important;
-  border-radius: 6px;
-  color: black;
-  transition: 0.2s linear;
-  margin-top: 26px;
-  margin-bottom: 12px;
-  margin-left: 220px;
-}
-
-.add_btn:hover {
-  background-color: yellow !important;
-  scale: 1.2;
-}
-
 .map_container {
-  padding: 10px;
-  height: 330px;
+  width: 95%;
+  height: 100%;
   background-color: black;
   border-radius: 12px;
   display: flex;
@@ -102,6 +61,7 @@
   gap: 15px;
   flex-direction: column;
   align-items: center;
+  padding: 12px;
 }
 
 .map_title {
@@ -120,67 +80,76 @@
 
 .btn_container {
   display: flex;
-  width: 100%;
   justify-content: center;
-  margin-top: 15px;
+  align-items: center;
+  width: 90%;
+  margin-top: 6px;
+  gap: 12px;
 }
 
 .btn {
-  width: 100% !important;
+  width: 80%;
 }
 
-.exit {
-  position: absolute;
-  z-index: 2;
-  bottom: 10px;
-  left: 30px;
-  padding: 12px;
+.img_container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
-.no_active_btn {
-  background-color: #747474 !important;
-  pointer-events: none !important;
+.image {
+  object-fit: contain;
+  height: 300px;
+  margin-bottom: 32px;
 }
 
-.disabled {
-  background-color: grey !important;
-  pointer-events: none;
+.inactive {
+  display: none;
 }
 
-@media screen and (max-width: 620px) {
-  .map_container {
-    visibility: hidden;
-    position: absolute;
+.clock {
+  color: white;
+}
+
+
+@media screen and (max-width: 750px) {
+  #map {
+    display: none;
   }
 
-  .title_container {
+  .lobby_card {
+    flex-direction: column-reverse;
+    gap: 20px;
+  }
+
+  .card {
+    overflow:auto;
+    scrollbar-width: none;
+    min-width: 450px;
+  }
+
+  .header_container {
     flex-direction: column;
     justify-content: center;
+    height: 60px;
   }
 
   .code_container {
     font-size: 26px;
     width: auto;
-    padding: 8px;
-    padding-inline: 35px;
-    margin-top: 6px;
-    margin-bottom: 32px;
+    margin-bottom: 6px;
   }
 
   .btn_container {
-    display: flex;
-    justify-content: flex-end;
     width: 100%;
     margin-top: 25px;
   }
 
   .btn {
     width: 130px !important;
-  }
-
-
-  .card {
-    width: 700px;
+    font-size: 12px !important;
   }
 
   .members_container {
@@ -191,16 +160,4 @@
     scale: 0.5;
   }
 
-  .lobby_card {
-    gap: 0px;
-    
-  }
-
-  .exit {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    bottom: 82px;
-    left: -83px;
-  }
 }

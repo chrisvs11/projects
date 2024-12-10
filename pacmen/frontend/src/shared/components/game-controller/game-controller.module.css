@@ -1,0 +1,58 @@
+.controller {
+    display: grid;
+    grid-template-areas: 
+      ". U ."
+      "L . R"
+      ". D ."
+    ;
+  }
+
+.controller > button {
+    background-color: yellow;
+    color: black;
+  }
+  
+  .up {
+    grid-area: U;
+    height: 42px;
+    width: 42px;
+    font-size: 22px;
+    border-radius: 12px 12px 4px 4px;
+    margin-bottom: 4px;
+  }
+  
+  .left {
+    grid-area: L;
+    height: 42px;
+    width: 42px;
+    font-size: 22px;
+    border-radius:   12px 4px  4px 12px ;
+    padding-bottom: 4px;
+    margin-right: 4px;
+   
+   
+  }
+  
+  
+  .right {
+    grid-area: R;
+    height: 42px;
+    width: 42px;
+    font-size: 22px;
+    border-radius:  4px 12px 12px 4px;
+    padding-bottom: 4px;
+    margin-left: 4px;
+  }
+  
+  .down {
+    grid-area: D;
+    height: 42px;
+    width: 42px;
+    font-size: 22px;
+    font-size: 22px;
+    border-radius:  4px  4px 12px 12px;
+    padding-bottom: 4px;
+    margin-top: 4px;
+  
+  }
+  

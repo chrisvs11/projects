@@ -1,5 +1,4 @@
 "use client";
-
 import { useCallback, useEffect, useState } from "react";
 
 import Link from "next/link";
@@ -15,14 +14,15 @@ import { useFormik } from "formik";
 
 import * as Yup from "yup";
 
-import { useLobbyId } from "@/shared/hooks";
-
 import styles from "./privatePage.module.css";
 
 import { Lobby, CollectionName, GhostTypes, Direction } from "@/shared/types";
 
 import { useRouter } from "next/navigation";
+
 import { firebaseService } from "@/shared/services";
+
+import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
 
 interface FormValues {
   code: string;
@@ -39,45 +39,40 @@ const validationSchema = Yup.object<FormValues>().shape({
     .required("Code cannot be empty"),
 });
 
-
 export default function PrivatePage() {
   const [incorrectPassword, setIncorrectPassword] = useState<boolean>(false);
-  const { lobbyId, setLobbyId } = useLobbyId();
+  const [lobbyId, setLobbyId] = useState<string>("")
   const router = useRouter();
 
   const cancelHandler = () => {
-    setLobbyId(null);
+    SessionStorage.setValue("lobbyId", "");
     router.push("/lobby");
   };
 
   const checkPassword = useCallback(
-    async (password: string): Promise<Lobby | null> => {
+    async (password: string): Promise<string | null> => {
       const lobby: Lobby | null = await firebaseService.getDocByQuery<Lobby>(
         CollectionName.LOBBIES,
         "code",
         password.toLocaleUpperCase()
       );
-
-      console.log(lobby?.members.length);
-      console.log(lobby?.maxPlayers);
       if (lobby && lobby.members.length < lobby.maxPlayers) {
-        setIncorrectPassword(false);
-        setLobbyId(lobby.id);
-        console.log(lobbyId);
-        return lobby;
+        return lobby.id;
       }
 
       setIncorrectPassword(true);
-      setLobbyId("");
       return null;
     },
-    [setLobbyId]
+    []
   );
 
   const onSubmit = useCallback(
     async (values: FormValues) => {
-      const lobby: Lobby | null = await checkPassword(values.code);
-      return lobby;
+      const selectedLobbyId: string | null = await checkPassword(values.code);
+      if(!selectedLobbyId) return null
+
+      setIncorrectPassword(false);
+      setLobbyId(selectedLobbyId)
     },
     [checkPassword]
   );
@@ -90,8 +85,16 @@ export default function PrivatePage() {
     });
 
   useEffect(() => {
-    setLobbyId("");
-  }, []);
+    SessionStorage.setValue("lobbyId",lobbyId)
+  },[lobbyId])
+
+  useEffect(() => {
+    myAudioProvider.playIntroSongMusic(true)
+
+    return ( () => {
+      myAudioProvider.playIntroSongMusic(false)
+    })
+  },[])
 
   return (
     <div className="body">
@@ -134,7 +137,7 @@ export default function PrivatePage() {
                     state={0}
                     velocity={0.9}
                     scale={1.2}
-                    rotation={180}
+                    direction={Direction.LEFT}
                   />
                 </div>
 

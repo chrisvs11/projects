@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-import { CollectionName, Lobby, LobbyType } from "../../../shared/types";
+import { CollectionName, Lobby } from "../../../shared/types";
 
-import { Button } from "../../../shared/components";
+import { Button, LobbyTable } from "../../../shared/components";
 
 import styles from "./public.module.css";
 
@@ -11,36 +11,47 @@ import Link from "next/link";
 
 import RingLoader from "react-spinners/RingLoader";
 
-import { useLobbyId } from "@/shared/hooks";
-
-import { useRouter } from "next/navigation";
 import { firebaseService } from "@/shared/services";
-
-const playerImage: string =
-  "https://seeklogo.com/images/P/pacman-ghost-logo-4E0E79293D-seeklogo.com.png";
+import { myAudioProvider } from "@/shared/aux-classes";
 
 export default function LobbyPage() {
-  const [fetchedLobby, setFetchLobby] = React.useState<Lobby[]>([]);
+  const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const { setLobbyId } = useLobbyId();
-  const router = useRouter();
 
-  const clickHandler = (lobbyId: string) => {
-    setLobbyId(lobbyId);
-    router.push("/username");
-  };
+  const filteredLobbies = (lobbies:Lobby[]):Lobby[] => {
+
+    const filteredLobby:Lobby[] = []
+
+    for(let i = 0; i < lobbies.length; i++) {
+      const lobby = lobbies[i]
+      //lobby is full 
+      console.log("lobby",lobby)
+      if(lobby.maxPlayers === lobby.members.length) continue
+      //lobby is deleted
+      if(lobby.deletedAt) continue
+      //lobby is on a game
+      if(lobby.gameStarted) continue
+
+      filteredLobby.push(lobby)
+    }
+    return filteredLobby
+
+  }
+
 
   useEffect(() => {
     const { unsubscribe } = firebaseService.getRealTimeDocuments(
       CollectionName.LOBBIES,
-      (data:Lobby[]) => {
-        setFetchLobby(data);
+      (data: Lobby[]) => {
+        setLobbies(data);
         setTimeout(() => {
           setLoading(false);
         }, 1000);
       }
     );
+    myAudioProvider.playIntroSongMusic(true)
     return () => unsubscribe();
+   
   }, []);
 
   return (
@@ -48,69 +59,7 @@ export default function LobbyPage() {
       <div className={styles.title}>Lobbies</div>
       <div className={`card ${styles.card}`}>
         <div className={styles.lobby_card}>
-          <table className={styles.lobby_table}>
-            <thead>
-              <th>Host Name</th>
-              <th>Players</th>
-              <th>Join Lobby</th>
-            </thead>
-
-            {!loading && (
-              <tbody>
-                {fetchedLobby.map((lobby:Lobby,index) => {
-                  if (
-                    lobby.maxPlayers > lobby.members.length &&
-                    lobby.type === LobbyType.PUBLIC &&
-                    !lobby.deletedAt
-                  ) {
-                    return (
-                      <tr className={styles.table_row} key={index}>
-                        <td className={styles.cell}>
-                          <p>{lobby.hostUsername}</p>
-                          <p>ID:{lobby.code}</p>
-                        </td>
-                        <td className={styles.cell}>
-                          <img
-                            src={playerImage}
-                            alt=""
-                            className={styles.image}
-                          />
-                          {`${lobby.members.length}/${lobby.maxPlayers}`}
-                        </td>
-                        <td>
-                          <Button
-                            cKBtn
-                            btnText="Join"
-                            className={styles.btn}
-                            onClick={() => clickHandler(lobby.id)}
-                          />
-                        </td>
-                      </tr>
-                    );
-                  } else {
-                    return;
-                  }
-                })}
-              </tbody>
-            )}
-          </table>
-          {!loading &&
-            !fetchedLobby.find(
-              (lobby) => lobby.type === LobbyType.PUBLIC && !lobby.deletedAt && lobby.members.length < lobby.maxPlayers
-            ) && (
-              <tr
-                style={{
-                  textAlign: "center",
-                  color: "white",
-                  marginBottom: "30px",
-                  fontWeight: "600",
-                }}
-              >
-                <p>NOT PUBLIC LOBBIES AVAILABLE</p>
-                <p>GO ON AND HOST ONE 🕹️!!</p>
-                <div className={styles.pacman}></div>
-              </tr>
-            )}
+          {!loading && <LobbyTable availableLobbies={filteredLobbies(lobbies)}/>}
           {loading && (
             <div className={styles.loading}>
               <RingLoader
@@ -129,7 +78,6 @@ export default function LobbyPage() {
             cKBtn
             btnText="BACK"
             className={`cancel`}
-            CKColorSchema="orange"
           />
         </Link>
       </div>

@@ -1,4 +1,4 @@
-import { Coordinates, Direction, LobbyType, PlayerState, } from ".";
+import { LobbyType, PlayerState, MoveVector, } from ".";
 
 export interface GameCreateOptions {
   lobbyId: string;
@@ -7,10 +7,7 @@ export interface GameCreateOptions {
 export interface GameMoveUpdateOptions {
   playerNumber: string;
   gameId: string;
-  move: {
-    next:Coordinates,
-    direction:Direction
-  };
+  move: MoveVector
 }
 
 export interface PlayerStateUpdateOptions {

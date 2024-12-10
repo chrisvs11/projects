@@ -5,20 +5,19 @@ export class AudioHandler {
         this.audio = audio
     }
 
-    setVolume(volume:0|1|0.5):boolean {
+    setVolume(volume:number):boolean {
         this.audio.volume  = volume
         return true
     }
 
-    stop():boolean {
+    stop():void {
         this.audio.pause()
-        console.log("stopping audio ",this.audio.id)
-        return true
+        return 
     }
 
-    play():boolean {
+    play(volume:number = 1):boolean {
         this.audio.play()
-        // console.log("playing audio ",this.audio.id)
+        this.setVolume(volume)
         return true
     }
 

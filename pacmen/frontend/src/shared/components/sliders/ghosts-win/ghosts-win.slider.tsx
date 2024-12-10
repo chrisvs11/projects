@@ -7,7 +7,7 @@ export const GhostsWinSlider: FC = () => {
   return (
     <div className={styles.list}>
       <div id={styles.pacman}>
-        <PacmanSprite state={PlayerState.ALIVE} rotation={180} />
+        <PacmanSprite state={PlayerState.ALIVE} direction={Direction.LEFT} />
       </div>
       <GhostSprite
         state={PlayerState.ALIVE}

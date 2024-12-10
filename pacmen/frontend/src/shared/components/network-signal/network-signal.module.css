@@ -1,0 +1,29 @@
+.signal_container {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    color: white;
+    gap: 15px;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+ 
+}
+
+.signal {
+    height: 30px;
+    width: 30px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100%;
+}
+
+.online {
+    color: hsl(120, 70%, 60%);
+}
+
+.offline {
+    color: red;
+}

@@ -1,8 +1,8 @@
-import { PlayerState } from "./player.type";
+import { Direction, PlayerState } from "./player.type";
 
 export interface PacmanProps {
     state: PlayerState;
-    rotation?:number
+    direction?:Direction;
     velocity?:number
     scale?:number 
   }

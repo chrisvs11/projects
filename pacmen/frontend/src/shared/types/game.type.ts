@@ -1,7 +1,9 @@
 import { Player } from ".";
 export interface Game {
   id: string;
+  gameState:GameState;
   lobbyId:string;
+  mapId:string;
   players: Player[];
   playtime: number;
   lives: number;
@@ -10,7 +12,6 @@ export interface Game {
   ghostScore: number;
   numOfPellets: number;
   powerUpState:boolean;
-  gameState:GameState;
 }
 
 export enum GameState {

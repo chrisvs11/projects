@@ -1,12 +1,13 @@
 import { useCustomQuery } from ".";
-import { GameAudios } from "../aux-classes";
+import { myAudioProvider } from "../aux-classes";
 
 import {
   CaughtData,
-  Coordinates,
-  GamePlayerStates,
+  GamePlayersStates,
+  GameRole,
   GameState,
   PlayerState,
+  Position,
 } from "../types";
 
 enum CAUGHT_POINTS {
@@ -15,34 +16,35 @@ enum CAUGHT_POINTS {
 }
 
 export const useCollisionHandler = () => {
-  const gameAudios = new GameAudios()
+
   const { modifyPlayerState,updateGameState } = useCustomQuery();
  
   const checkCollision = (
-    coordinates1: Coordinates,
-    coordinates2: Coordinates
+    position1: Position,
+    position2: Position
   ) => {
     return (
-      coordinates1.row === coordinates2.row &&
-      coordinates1.col === coordinates2.col &&
-      coordinates1.row !== null &&
-      coordinates1.col !== null
+      position1.row === position2.row &&
+      position1.col === position2.col &&
+      position1.row !== null &&
+      position1.col !== null
     );
   };
 
-  const collisionHandler = (
-    playerStates: GamePlayerStates,
+  const getCaught = (
+    playerStates: GamePlayersStates,
     pacmanId: string,
     gameId: string,
+    lives:number
   ): CaughtData => {
     const pacmanState = playerStates[pacmanId];
     for (const key in playerStates) {
-      if (key !== pacmanId && playerStates[key].next) {
+      if (key !== pacmanId && playerStates[key].position) {
         const ghostState = playerStates[key];
 
         const hasCollided: boolean = checkCollision(
-          ghostState.next,
-          pacmanState.next
+          ghostState.position,
+          pacmanState.position
         );
 
         if (!hasCollided) continue;
@@ -50,19 +52,26 @@ export const useCollisionHandler = () => {
         if (ghostState.state === PlayerState.ALIVE) {
           console.log("Pacman Caught");
           modifyOnePlayerState(gameId, pacmanId, PlayerState.DEAD);
-          updateGameState({
-            gameId: gameId,
-            state: String(GameState.RESTART)
-          })
-          gameAudios.deathPacmanMusicStart();
-          return { player: "pacman", points: CAUGHT_POINTS.PACMAN };
+          if(lives <= 0) {
+            updateGameState({
+              gameId: gameId,
+              state: String(GameState.END)
+            })
+          } else {
+            updateGameState({
+              gameId: gameId,
+              state: String(GameState.RESTART)
+            })
+          }
+          myAudioProvider.playDeathPacmanMusic();
+          return { player: GameRole.PACMAN, points: CAUGHT_POINTS.PACMAN };
         }
 
         if (ghostState.state === PlayerState.SCARE) {
           console.log("Ghost Caught");
-          gameAudios.eatGhostMusicStart();
+          myAudioProvider.playEatGhostSound();
           modifyOnePlayerState(gameId, key, PlayerState.DEAD);
-          return { player: "ghost", points: CAUGHT_POINTS.GHOST };
+          return { player: GameRole.GHOST, points: CAUGHT_POINTS.GHOST };
         }
       }
     }
@@ -83,6 +92,6 @@ export const useCollisionHandler = () => {
   };
 
   return {
-    collisionHandler,
+    getCaught,
   };
 };

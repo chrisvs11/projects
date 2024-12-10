@@ -1,24 +1,6 @@
-.map {
-    display: grid;
-    text-align: center;
-    column-gap: 0;
-    border: 2px solid #2121DE;
-    background-color: black;
-    overflow: hidden;
-    height: 300px;
-    width: 250px;;
-    align-items: center;
-    justify-items: center;
-    padding: 5px;
-    position: relative;
-    
-
-
-}
-
-.cell {
- height: 1fr;
- width: 1fr;
- font-size: 0.2em;
- text-align: center;
+.avatar {
+    position: absolute;
+    z-index: 2;
+    width: 100px;
+    height: 100px;
 }

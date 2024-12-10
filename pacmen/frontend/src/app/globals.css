@@ -5,8 +5,14 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  position: absolute;
   overflow: hidden;
+}
+
+:root {
+  --squish-animation-time:800ms;
+  --progress-animation-time:1000ms;
+  --circle-animation-time:500ms;
+  --checkmark-animation-time:500ms
 }
 
 .card {
@@ -74,20 +80,7 @@
   scale: 1.1 !important;; 
 }
 
-.audio_btn_container {
-  background-color: rgba(119, 119, 119, 0.192);
-  width: 75px;
-  height: 50px;
-  border-radius: 12px;
-  position: absolute;
-  z-index: 3;
-  top: 35px;
-  left: 35px;
-  font-size: 35px;
-  display: flex;
-  justify-content: center;
-  border: 3px solid white;
-}
+
 
 .private > div > div > button {
   background-color: #1bade4 !important;
@@ -98,10 +91,4 @@
   color: black;
 }
 
-@media screen and (max-width:350px) {
-  .audio_btn_container {
-    top: 15px;
-    left: 15px;
-    scale: 0.6;
-  }
-}
+

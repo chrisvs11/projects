@@ -1,6 +1,6 @@
 .loginBody{
     background-color: rgba(0,0,0,0.4);
-    height: 100vh;
+    height: 95vh;
     width: 100vw;
     display: flex;
     align-items: center;
@@ -10,7 +10,7 @@
 
 .btn{
     height: 50px;
-    width: 157px;
+    width: 180px;
     margin: 0;
     padding: 0;
     box-sizing: border-box;

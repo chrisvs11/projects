@@ -8,33 +8,31 @@ import { PacmanSprite } from "./pacman-sprite";
 
 import styles from "./player-avatar.module.css";
 
+import { useGameMap } from "@/shared/hooks";
+
 export const PlayerAvatar: FC<AvatarProps> = ({
   offsetX,
   offsetY,
-  coordinates,
+  tileWidth,
+  position,
   playerNum,
   ghostType,
   role,
   state,
   direction = Direction.RIGHT,
   scale = 1,
-  coordinatesToRecCoordinates,
   className,
 }) => {
 
   const [rec,setRec] = useState<RecCoordinates>()
 
+  const { getRecCoordinates } = useGameMap();
 
-  const rotationHash:{[key:string]:number} = {
-    [Direction.RIGHT]:0,
-    [Direction.LEFT]:180,
-    [Direction.UP]:-90,
-    [Direction.DOWN]:-270
-  }
+
 
   useEffect(() => {
-    setRec(coordinatesToRecCoordinates())
-  },[coordinates])
+    setRec(getRecCoordinates(position,tileWidth))
+  },[position,tileWidth])
 
   return (
     <div className={`${styles.avatar_container} ${className}`} style={{left: `${(rec?.left||0)+offsetX}px`, top:`${(rec?.top||0)+offsetY}px`}}>
@@ -47,7 +45,7 @@ export const PlayerAvatar: FC<AvatarProps> = ({
           scale={scale}
         />
       ) : (
-        <PacmanSprite state={state} scale={scale} rotation={rotationHash[direction]}/>
+        <PacmanSprite state={state} scale={scale} direction={direction}/>
       )}
     </div>
   );

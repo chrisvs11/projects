@@ -12,14 +12,13 @@ import {
   useStartGameMutation
 } from "../services/tanstack-query";
 
-import { useRouter } from "next/navigation";
+import { Lobby } from "../types";
 
-import { Game, Lobby } from "../types";
+
 
 export const useCustomQuery = () => {
-  const router = useRouter()
-
-  const { mutate: moveYourAvatar } = useStatMoveMutation({
+  
+  const { mutateAsync: sendMove } = useStatMoveMutation({
     onSuccess:() => {
       console.log("movement send successfully")
     },
@@ -28,7 +27,7 @@ export const useCustomQuery = () => {
     },
   });
 
-  const { mutate: modifyPlayerState } = useStatStateMutation({
+  const { mutateAsync: modifyPlayerState } = useStatStateMutation({
     onSuccess:(data) => {
       console.log(`states modified`, data)
     },
@@ -37,47 +36,44 @@ export const useCustomQuery = () => {
     },
   });
 
-  const { mutate: leaveLobby } = useLobbyLeaveMutation({
+  const { mutateAsync: leaveLobby } = useLobbyLeaveMutation({
+    onSuccess:() => {
+      console.log("Success Leaving the lobby")
+    },
     onError: () => {
       console.error("Error exiting the lobby");
     },
   });
 
-  const { mutate: joinLobby } = useLobbyJoinMutation({
-    onSuccess: () => {
+  const { mutateAsync: joinLobby } = useLobbyJoinMutation({
+    onSuccess: (data) => {
       console.log("added npc");
+      return data
     },
-    onError: () => {
-      console.error("Error adding npc");
+    onError: (error) => {
+      console.error("Error adding npc", error.message);
     },
   });
 
-  const { mutate: createGame } = useGameCreateMutation({
-    onSuccess: (data: Game,{lobbyId}) => {
-      router.push(`${lobbyId}/gamePrep/${data.id}`);
+  const { mutateAsync: createGame } = useGameCreateMutation({
+    onSuccess: () => {
     },
     onError: (e) => {
       console.error("Error creating the game", e.message);
     },
   });
 
-  const { mutate:createLobby } = useLobbyCreateMutation({
+  const { mutateAsync:createLobby } = useLobbyCreateMutation({
     onSuccess: (data: Lobby) => {
-      router.push(`${data.id}`);
-      const audio = document.getElementById("audio") as HTMLAudioElement;
-      audio.pause();
-      return true
-      
+      return data
     },
     onError: (error) => {
       console.error("Mutation error:", error);
-      const audio = document.getElementById("audio") as HTMLAudioElement;
-      audio.pause();
-      return error
+ 
     },
   });
 
-  const {mutate:updateGameState} = useGameStateMutation({
+  const {mutateAsync:updateGameState} = useGameStateMutation({
     onSuccess: () => {
       console.log("Game State Updated Successfully")
     },
@@ -86,7 +82,7 @@ export const useCustomQuery = () => {
     }
   })
 
-  const {mutate:updateGhostType} = useChangeGhostTypeMutation({
+  const {mutateAsync:updateGhostType} = useChangeGhostTypeMutation({
     onSuccess: () => {
       console.log("Game State Updated Successfully")
     },
@@ -95,7 +91,7 @@ export const useCustomQuery = () => {
     }
   })
 
-  const {mutate:addNPCToLobby} = useAddNPCMutation({
+  const {mutateAsync:addNPCToLobby} = useAddNPCMutation({
     onSuccess: () => {
       console.log("Game State Updated Successfully")
     },
@@ -104,20 +100,21 @@ export const useCustomQuery = () => {
     }
   })
 
-  const {mutate:readyPlayer} = useReadyPlayerGameMutation({
+  const {mutateAsync:readyPlayer} = useReadyPlayerGameMutation({
     onSuccess: () => {
-      console.log("Player Ready")
+      return true
     },
     onError:(error) => {
       console.error(error)
+      return false
     }
   })
 
-  const {mutate:startGame} = useStartGameMutation({
+  const {mutateAsync:startGame} = useStartGameMutation({
   })
 
   return {
-    moveYourAvatar,
+    sendMove,
     modifyPlayerState,
     leaveLobby,
     joinLobby,

@@ -1,4 +1,4 @@
-import { Coordinates, GhostTypes } from ".";
+import { GhostTypes, Position } from ".";
 
 export enum GameRole {
   PACMAN = "🤗",
@@ -19,9 +19,9 @@ export interface Player {
   type:GhostTypes
   role: GameRole;
   color?: string;
-  start: Coordinates;
+  start: Position;
   state: PlayerState;
-  next: Coordinates;
+  position: Position;
   direction: Direction;
 }
 

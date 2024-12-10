@@ -1,0 +1,19 @@
+.loading_btn{
+    background-color: #1BADE4 ;
+    width: 150px;
+    height: 40px;
+    border-radius: 6px;
+    font-family: sans-serif;
+    font-weight: 1000;
+    color: white;
+}
+
+.loading_btn::before {
+    content: "hello";
+    color: blue;
+}
+
+.animating {
+    opacity: 0;
+}
+

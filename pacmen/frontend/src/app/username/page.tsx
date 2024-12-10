@@ -10,58 +10,39 @@ import { useRouter } from "next/navigation";
 
 import { useEffect, useState } from "react";
 
-import { useLobbyId, useUsername } from "@/shared/hooks";
-
 import { CollectionName, Lobby } from "@/shared/types";
 
-import { firebaseService, useLobbyJoinMutation } from "@/shared/services";
+import { firebaseService } from "@/shared/services";
 
 import { Button, Input } from "@/shared/components";
+
+import { useCustomQuery } from "@/shared/hooks";
+
+import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
 
 interface FormValues {
   username: string;
 }
 
-const restrictedName: string[] = ["blinky", "inky", "pinky", "clyde"];
+const RESTRICTED_NAMES: string[] = ["blinky", "inky", "pinky", "clyde"];
 
 export default function Page() {
-  const { setUsername } = useUsername();
-  const [initialValues, setInitialValues] = useState<FormValues>({
-    username:""
-  })
-  const { lobbyId } = useLobbyId();
+  const [lobby, setLobby] = useState<Lobby>();
+  const {joinLobby} = useCustomQuery()
   const router = useRouter();
-  const [currentLobby, setCurrentLobby] = useState<Lobby>();
-
-  const { mutate } = useLobbyJoinMutation({
-    onSuccess: (data: Lobby) => {
-      console.log("Join Successfully");
-      router.push(`lobby/${data.uuid}`);
-    },
-    onError: (error) => {
-      console.error("Mutation error:", error);
-    },
-  });
-
-  const saveInLocalStorage = (username: string) => {
-    if(typeof window === "undefined") return ""
-    localStorage.setItem("username", username);
-  };
-
-  const loadUsernameFromStorage = ():string => {
-    const username:string = localStorage.getItem("username") || ""
-    setUsername(username)
-    return username 
-  }
-
-  const checkUsernameAvailability = (currentUsername: string): boolean => {
-    const member = currentLobby?.members.find(
+  const checkUsernameAvailability = (username: string): boolean => {
+    if (!lobby) return true;
+    const isAvailable: boolean = lobby.members.every(
       (member) =>
-        member.username.toLocaleLowerCase() ===
-        currentUsername.toLocaleLowerCase()
+        member.username.toLocaleLowerCase() !== username.toLocaleLowerCase()
     );
-    return member ? false : true;
+    return isAvailable;
   };
+
+  const autoRouter = (lobbyId:string) => {
+    const isMemberAlready = SessionStorage.getValue("activeMember")
+    if(lobbyId && isMemberAlready) router.push(`lobby/${lobbyId}`);
+  }
 
   const validationSchema = Yup.object<FormValues>().shape({
     username: Yup.string()
@@ -70,39 +51,39 @@ export default function Page() {
       .test(
         "not-restricted-name",
         "Username restricted to an NPC",
-        (value) => !value || !restrictedName.includes(value.toLocaleLowerCase())
+        (value) => !value || !RESTRICTED_NAMES.includes(value.toLocaleLowerCase())
       )
       .test("username taken", "Username already taken", (value) =>
         checkUsernameAvailability(value.toLocaleLowerCase().trim())
       ),
   });
 
-  const fetchLobby = async () => {
+  const fetchLobby = async (lobbyId:string) => {
     try {
-      if (!lobbyId) return;
-
       const lobby = (await firebaseService.getData(
         CollectionName.LOBBIES,
         lobbyId
       )) as Lobby;
-      setCurrentLobby(lobby);
+      setLobby(lobby);
     } catch (e) {
       console.error("Error", e);
     }
   };
 
   const joinHandler = async (username: string, lobbyId: string) => {
-    mutate({ username, lobbyId });
+    try{
+      await joinLobby({username,lobbyId})
+      router.push(`lobby/${lobbyId}`);
+    } catch(e) {
+      console.error(e)
+    }
   };
 
   const onSubmit = () => {
-    setUsername(values.username);
-    saveInLocalStorage(values.username);
-    if (lobbyId) {
-      joinHandler(values.username, lobbyId);
-    } else {
-      router.push("/lobby/new");
-    }
+    const lobbyId = SessionStorage.getValue("lobbyId");
+    SessionStorage.setValue("username", values.username);
+    if (!lobbyId) return router.push("/lobby/new");
+    joinHandler(values.username, lobbyId);
   };
 
   const goBack = () => {
@@ -111,40 +92,46 @@ export default function Page() {
 
   const { values, errors, touched, handleSubmit, handleChange } =
     useFormik<FormValues>({
-      initialValues,
+      initialValues:{username:SessionStorage.getValue("username")},
       validationSchema,
       onSubmit,
     });
 
+
   useEffect(() => {
-    fetchLobby();
-    const username = loadUsernameFromStorage()
-    setInitialValues({username})
+    const lobbyId = SessionStorage.getValue("lobbyId") || ""
+    fetchLobby(lobbyId);
+    myAudioProvider.playIntroSongMusic(true)
+    //If join to a lobby previously, it will go there
+    autoRouter(lobbyId)
+    return (() => {
+      myAudioProvider.playIntroSongMusic(false)
+    })
   }, []);
 
   return (
     <div className="body">
       <div className={`card ${styles.card}`}>
-      <form className={styles.form} action="submit" onSubmit={handleSubmit}>
-            <Input
-              name="username"
-              ckStyle={true}
-              className={styles.input}
-              value={values.username}
-              placeholder="Enter Username"
-              onChange={handleChange}
-              error={touched.username ? errors.username : ""}
+        <form className={styles.form} action="submit" onSubmit={handleSubmit}>
+          <Input
+            name="username"
+            ckStyle={true}
+            className={styles.input}
+            value={values.username}
+            placeholder="Enter Username"
+            onChange={handleChange}
+            error={touched.username ? errors.username : ""}
+          />
+          <div className={styles.btn_container}>
+            <Button
+              btnText="CONFIRM"
+              className={`${styles.btn} continue`}
+              cKBtn
+              type="submit"
             />
-            <div className={styles.btn_container}>
-              <Button
-                btnText="CONFIRM"
-                className={`${styles.btn} continue`}
-                cKBtn
-                type="submit"
-              />
-            </div>
-          </form>
-        </div>
+          </div>
+        </form>
+      </div>
       <div className={styles.btn_cancel}>
         <Button
           btnText="BACK"

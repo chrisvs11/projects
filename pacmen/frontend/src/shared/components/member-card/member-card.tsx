@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from "react";
 
 import { Button } from "../buttons";
 
-import { useCustomQuery, useUsername } from "@/shared/hooks";
+import { useCustomQuery } from "@/shared/hooks";
 
 import { Direction, GhostTypes, MemberCardProps } from "@/shared/types";
 
@@ -13,6 +13,8 @@ import styles from "./member-card.module.css";
 import { GhostSprite } from "../player-sprites";
 
 import { useLobbyLeaveMutation } from "@/shared/services/tanstack-query";
+
+import { SessionStorage } from "@/shared/aux-classes";
 
 const ghostSelector: { [key: string]: GhostTypes } = {
   blinky: GhostTypes.BLINKY,
@@ -27,7 +29,7 @@ const ghostSelector: { [key: string]: GhostTypes } = {
 export const MemberCard: FC<MemberCardProps> = ({
   username,
   isHost,
-  position,
+  playerNumber,
   hostUsername,
   lobbyId,
   ghostType
@@ -35,7 +37,7 @@ export const MemberCard: FC<MemberCardProps> = ({
   const [ghost, setGhost] = useState<GhostTypes>(GhostTypes.BLINKY);
   const [npc, setNPC] = useState<boolean>(false);
   const {updateGhostType} = useCustomQuery()
-  const { username: currentUsername } = useUsername();
+  const [playerUsername, setPlayerUsername] = useState<string>("")
 
   const { mutate } = useLobbyLeaveMutation({
     onSuccess: () => {
@@ -62,7 +64,7 @@ export const MemberCard: FC<MemberCardProps> = ({
     if (nextIndex < 0) nextIndex = numGhost - 1;
     updateGhostType({
       lobbyId: lobbyId,
-      userIndex: String(position-1),
+      userIndex: String(playerNumber-1),
       ghostType: ghostArray[nextIndex]
     })
     setGhost(ghostArray[nextIndex]);
@@ -89,11 +91,15 @@ export const MemberCard: FC<MemberCardProps> = ({
     setNPC(checkNPC(username));
   },[username]);
 
+  useEffect(() => {
+    setPlayerUsername(SessionStorage.getValue("username"))
+  })
+
   return (
     <div className={styles.card}>
-      <span>P{position}</span>
+      <span>P{playerNumber}</span>
       <div className={styles.avatar_container}>
-        {!npc && currentUsername === username && (
+        {!npc && playerUsername === username && (
           <Button
             btnText="<"
             cKBtn={false}
@@ -105,10 +111,10 @@ export const MemberCard: FC<MemberCardProps> = ({
           state={0}
           type={ghostSelector[ghostType||GhostTypes.BLINKY]}
           direction={Direction.RIGHT}
-          scale={0.7}
+          scale={0.8}
           fps={8}
         />
-        {!npc && currentUsername === username &&(
+        {!npc && playerUsername === username &&(
           <Button
             btnText=">"
             cKBtn={false}
@@ -119,7 +125,7 @@ export const MemberCard: FC<MemberCardProps> = ({
       </div>
       <div className={styles.username_container}>
         {`${username} `} {isHost && "👑"}
-        {currentUsername === hostUsername && username !== hostUsername && (
+        {playerUsername === hostUsername && username !== hostUsername && (
           <Button
             btnText="🗑"
             className={styles.delete_btn}

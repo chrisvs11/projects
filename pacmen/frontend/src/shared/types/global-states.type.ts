@@ -1,8 +1,9 @@
 export enum GlobalStates {
-    USERNAME = "username",
-    LOBBY_ID = "lobbyId",
+    LOGOUT = "logout",
     PLAYER_ID = "playerId",
     GAME_MAP = "gameMap",
     GAME = "game",
-    AUDIOTXT = "audioText"
+    AUDIO_VOL = "audio_vol",
+    SCORES = "scores",
+    PELLETS = "pellets"
 }

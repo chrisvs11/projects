@@ -29,7 +29,6 @@
   border-bottom: 5px solid white;
   margin-bottom: 12px;
 }
-
 .btn_cancel {
   position: absolute;
   z-index: 2;
@@ -38,7 +37,6 @@
   padding: 12px;
   width: 100%;  
 }
-
 
 @media screen and (max-width:450px) {
   .btn_cancel{

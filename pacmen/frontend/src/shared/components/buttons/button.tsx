@@ -12,15 +12,17 @@ export interface ButtonProps {
     type?:"button"|"submit"|"reset"|undefined
     onClick?:() => void
     disabled?:boolean
+    id?:string;
 
 
 
 }
 
-export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSize="md",ckVariant="solid", cssStyle,className,type="button",onClick, disabled = false}) => {
+export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSize="md",ckVariant="solid", cssStyle,className,type="button",onClick, disabled = false,id}) => {
     return (
         cKBtn ? 
         <BCK 
+        id={id}
         className={className}
         colorScheme={CKColorSchema} 
         size={cKSize} 
@@ -32,6 +34,6 @@ export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSi
         >
             {btnText}
         </BCK>
-        : <button disabled={disabled} className={className} onClick={onClick}> {btnText}</button>
+        : <button id={id} disabled={disabled} className={className} onClick={onClick}> {btnText}</button>
     )
 }

@@ -1,0 +1,64 @@
+.members_container {
+    border-radius: 12px;
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 95%;
+    height: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    overflow: auto;
+    scrollbar-width: 21;
+  }
+  
+  .member_cards_container {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+  }
+  
+  .member_cards::-webkit-scrollbar {
+    display: 21;
+  }
+
+
+  .add_btn_container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+    margin-top: 12px;
+
+  }
+
+  .add_btn {
+    background-color: yellow !important;
+    border-radius: 6px;
+    color: black;
+    transition: 0.2s linear !important;
+  }
+  
+  .add_btn:hover {
+    background-color: yellow !important;
+    scale: 1.2;
+  }
+  
+  .disabled {
+    background-color: grey !important;
+    pointer-events: none;
+  }
+
+  .error_message {
+    color: transparent;
+  }
+
+  .active {
+    color: white;
+  }
+

@@ -81,6 +81,7 @@ class FirebaseService {
     collectionName: CollectionName
   ): Promise<T[]> {
     try {
+      console.log(`Getting the documents for ${collectionName}`)
       const collectionRef = this.getCollectionReference(collectionName);
 
       const querySnapshot = await getDocs(collectionRef);
@@ -169,6 +170,7 @@ class FirebaseService {
     setDataState: (value: T) => void,
     errorFn: () => void
   ): Unsubscribe {
+    console.log(`websocket created for ${CollectionName}`)
     const docRef = this.getDocReference(CollectionName, entityId);
     let docData = undefined;
     const unsubscribe = onSnapshot(docRef, (docSnapshot: DocumentSnapshot) => {

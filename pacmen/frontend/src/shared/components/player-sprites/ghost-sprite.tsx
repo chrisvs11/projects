@@ -35,7 +35,7 @@ export const GhostSprite: FC<GhostProps> = ({
     <div className={styles.ghost} key={state}>
       <SpriteAnimator
         src={Sprites.src}
-        frameWidth={{x:50,y:50}}
+        frameWidth={{x:38,y:50}}
         numFrames={numFrames}
         fps={fps}
         offsetX={offsetX}

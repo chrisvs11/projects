@@ -6,7 +6,8 @@ export interface Lobby {
   lobbyReady:boolean;
   hostUsername: string;
   gameStarted:boolean;
-  gameId: string;
+  startTime?:number;
+  gameId?: string;
   id: string;
   uuid:string
   maxPlayers: number;
@@ -16,8 +17,6 @@ export interface Lobby {
   type: LobbyType;
 
 }
-
-
 
 export enum LobbyType {
   PRIVATE = 'private',

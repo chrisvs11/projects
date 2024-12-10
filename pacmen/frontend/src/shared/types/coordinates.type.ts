@@ -1,4 +1,4 @@
-export interface Coordinates {
+export interface Position {
   row: number;
   col: number;
 }
@@ -9,7 +9,7 @@ export interface RecCoordinates {
 }
 
 export interface GameCoordinates {
-  [key: string]: Coordinates;
+  [key: string]: Position;
 }
 
 export interface GameRecCoordinates {

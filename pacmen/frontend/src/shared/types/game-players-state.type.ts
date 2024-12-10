@@ -1,5 +1,5 @@
 import { Player} from "./player.type";
 
-export interface GamePlayerStates {
+export interface GamePlayersStates {
   [key: string]: Player;
 }

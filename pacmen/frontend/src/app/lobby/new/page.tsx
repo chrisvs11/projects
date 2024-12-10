@@ -7,9 +7,14 @@ import Link from "next/link";
 
 import PacmanLoader from "react-spinners/PacmanLoader";
 
-import { useCustomQuery, useLobbyCreation, useUsername } from "@/shared/hooks";
+import { useCreateLobby, useCustomQuery } from "@/shared/hooks";
 
-import { CollectionName, GameMap, LobbyCreationOptions } from "@/shared/types";
+import {
+  CollectionName,
+  GameMap,
+  Lobby,
+  LobbyCreationOptions,
+} from "@/shared/types";
 
 import {
   Button,
@@ -17,7 +22,12 @@ import {
   MapSelectContainer,
   NumPropertyContainer,
 } from "@/shared/components";
+
 import { firebaseService } from "@/shared/services";
+
+import { useRouter } from "next/navigation";
+
+import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
 
 const TILES_WIDTH: number = 10;
 
@@ -26,7 +36,7 @@ const WAIT_TIME: number = 1500;
 export default function LobbyCreationPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [isClick, setIsClick] = useState<boolean>(false);
-  const { username: currentUsername } = useUsername();
+  const router = useRouter();
   const {
     lobbyType,
     players,
@@ -41,11 +51,15 @@ export default function LobbyCreationPage() {
     setGameMaps,
     settingLives,
     list_lobby_types,
-  } = useLobbyCreation();
+  } = useCreateLobby();
   const { createLobby } = useCustomQuery();
-
   const [tileWidth, setTileWidth] = useState<number>(TILES_WIDTH);
   const [windowWidth, setWindowWidth] = useState<number>(0);
+
+  const resize = () => {
+    console.log("resizing...")
+    setWindowWidth(window.innerWidth);
+  }
 
   useEffect(() => {
     const newTileWidth =
@@ -53,29 +67,24 @@ export default function LobbyCreationPage() {
     setTileWidth(newTileWidth);
   }, [windowWidth]);
 
-  useEffect(() => {
-    setWindowWidth(window.innerWidth);
-
-    function resize() {
-      setWindowWidth(window.innerWidth);
+  const createLobbyHandler = async () => {
+    setIsClick((prev) => !prev);
+    try {
+      const newLobbyProps: LobbyCreationOptions = {
+        maxPlayers: players,
+        type: lobbyType,
+        hostUsername: SessionStorage.getValue("username"),
+        mapId: gameMaps![mapIndex].id,
+        playtime: time,
+        lives: lives,
+      };
+      const lobby: Lobby = await createLobby(newLobbyProps);
+      SessionStorage.setValue("lobbyId", lobby.id);
+      router.push(`${lobby.id}`);
+    } catch (e) {
+      console.error(e);
+      setIsClick(false);
     }
-
-    window.addEventListener("resize", resize);
-
-    return () => window.removeEventListener("resize", resize);
-  }, []);
-
-  const clickHandler = async () => {
-    setIsClick(true);
-    const newLobby: LobbyCreationOptions = {
-      maxPlayers: players,
-      type: lobbyType,
-      hostUsername: currentUsername,
-      mapId: gameMaps![mapIndex].id!,
-      playtime: time,
-      lives: lives,
-    };
-    createLobby(newLobby);
   };
 
   const getAllMaps = useCallback(async () => {
@@ -87,7 +96,7 @@ export default function LobbyCreationPage() {
     setTimeout(() => {
       setLoading(false);
     }, WAIT_TIME);
-  }, [setGameMaps, setLoading]);
+  }, [gameMaps]);
 
   const updateNumPlayer = useCallback(() => {
     if (!gameMaps) return;
@@ -101,10 +110,24 @@ export default function LobbyCreationPage() {
     updateNumPlayer();
   }, [mapIndex]);
 
+  useEffect(() => {
+    setWindowWidth(window.innerWidth)
+    console.log("window width", windowWidth)
+  },[windowWidth])
+
+
+  useEffect(() => {
+  
+    window.addEventListener("resize", resize);
+    myAudioProvider.playIntroSongMusic(true);
+
+    return () => window.removeEventListener("resize", resize);
+  }, []);
+  
   return (
     <div className="body">
       <div className={`card ${styles.card}`}>
-        {!loading && gameMaps ? (
+        {!loading && gameMaps && gameMaps?.length > 0 && (
           <div>
             <div className={styles.lobby_edit}>
               <MapSelectContainer
@@ -156,16 +179,15 @@ export default function LobbyCreationPage() {
               <div className={styles.btns_container}>
                 <Button
                   cKBtn={true}
-                  btnText={`${!isClick ? "CREATE LOBBY" : "PROCESSING..."}`}
+                  btnText={`${!isClick ? "CREATE LOBBY" : "CREATING..."}`}
                   className={`${styles.btn}  continue`}
-                  onClick={() => clickHandler()}
-                  disabled={isClick}
-                  cssStyle={{ pointerEvents: `${!isClick ? "auto" : "none"}` }}
+                  onClick={() => createLobbyHandler()}
                 />
               </div>
             </div>
           </div>
-        ) : (
+        )}
+        {loading &&  (
           <div className={styles.loading}>
             <PacmanLoader
               color="yellow"

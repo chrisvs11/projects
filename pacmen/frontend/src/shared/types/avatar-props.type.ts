@@ -1,16 +1,14 @@
-import { Coordinates, Direction, GameRole, MapTile, PlayerState, RecCoordinates } from ".";
+import {  Direction, GameRole, PlayerState, Position } from ".";
 export interface AvatarProps {
   offsetX: number;
   offsetY: number;
-  coordinates: Coordinates;
+  tileWidth:number;
+  position: Position;
   playerNum: number;
   ghostType:string;
   role: GameRole;
   state: PlayerState;
   direction?: Direction;
   scale?: number;
-  mapTiles:MapTile[],
-  cols:number,
-  coordinatesToRecCoordinates: () => RecCoordinates
   className:string
 }

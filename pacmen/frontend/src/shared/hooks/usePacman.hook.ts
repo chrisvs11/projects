@@ -1,28 +1,43 @@
-import { GamePlayerStates, GameRole, Player, PlayerState, PlayerStateUpdateOptions } from "../types";
+import {
+  GamePlayersStates,
+  GameRole,
+  Player,
+  PlayerState,
+  PlayerStateUpdateOptions,
+} from "../types";
 
 import { useCustomQuery } from "./useCustomQuery.hook";
 
 export const usePacman = () => {
+  const { modifyPlayerState } = useCustomQuery();
 
-  const {modifyPlayerState} = useCustomQuery()
+  const scareGhosts = (
+    gamePlayerStates: GamePlayersStates,
+    gameId: string
+  ): PlayerState => {
+    const aliveGhosts: Player[] = Object.values(gamePlayerStates).filter(
+      (player) =>
+        player.role === GameRole.GHOST && player.state === PlayerState.ALIVE
+    );
+    console.log("alive ghosts to scare: ", aliveGhosts);
+    changeAliveGhostState(aliveGhosts, gameId, PlayerState.SCARE);
+    return PlayerState.SCARE;
+  };
 
+  const returnToNormalGhosts = (
+    gamePlayerStates: GamePlayersStates,
+    gameId: string
+  ): PlayerState => {
+    const scareGhosts: Player[] = Object.values(gamePlayerStates).filter(
+      (player) =>
+        player.role === GameRole.GHOST && player.state === PlayerState.SCARE
+    );
+    console.log("scare ghost returning to normal: ", scareGhosts);
+    changeAliveGhostState(scareGhosts, gameId, PlayerState.ALIVE);
+    return PlayerState.ALIVE;
+  };
 
-  const scareGhosts = (gamePlayerStates:GamePlayerStates,gameId:string):PlayerState =>  {
-
-    const aliveGhosts:Player[] = Object.values(gamePlayerStates).filter(player => player.role === GameRole.GHOST && player.state === PlayerState.ALIVE)
-    console.log("alive ghosts to scare: ", aliveGhosts)
-    changeAliveGhostState(aliveGhosts,gameId,PlayerState.SCARE)
-    return PlayerState.SCARE
-  }
-
-  const returnToNormalGhosts = (gamePlayerStates:GamePlayerStates,gameId:string):PlayerState  => {
-    const aliveGhosts:Player[] = Object.values(gamePlayerStates).filter(player => player.role === GameRole.GHOST && player.state !== PlayerState.DEAD)
-    console.log("alive ghosts to return to normal: ", aliveGhosts)
-    changeAliveGhostState(aliveGhosts,gameId,PlayerState.ALIVE)
-    return PlayerState.ALIVE
-  }
-
-  const changeAliveGhostState  = (
+  const changeAliveGhostState = (
     aliveGhostsPlayerStates: Player[],
     gameId: string,
     state: PlayerState
@@ -40,7 +55,6 @@ export const usePacman = () => {
 
   return {
     scareGhosts,
-    returnToNormalGhosts
-  }
-
+    returnToNormalGhosts,
+  };
 };

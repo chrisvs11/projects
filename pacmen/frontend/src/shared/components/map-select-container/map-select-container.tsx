@@ -10,8 +10,8 @@ interface MapSelectContainerProps {
   setMapIndex: (value: SetStateAction<number>) => void;
   mapsLength: number;
   mapIndex: number;
-  className:string;
-  tileWidth:number
+  className: string;
+  tileWidth: number;
 }
 
 export const MapSelectContainer: FC<MapSelectContainerProps> = ({
@@ -20,7 +20,7 @@ export const MapSelectContainer: FC<MapSelectContainerProps> = ({
   mapsLength,
   mapIndex,
   className,
-  tileWidth
+  tileWidth,
 }) => {
   const getNextMapId = (direction: "increment" | "decrement") => {
     mapIndex = Math.abs(mapIndex + (direction === "increment" ? 1 : -1));
@@ -40,11 +40,8 @@ export const MapSelectContainer: FC<MapSelectContainerProps> = ({
       <div className={styles.map_layout}>
         {currentMap ? (
           <MapLayout
-            mapTiles={currentMap.tiles}
             tilesHeight={tileWidth}
-            cols={currentMap.cols}
-            rows={currentMap.rows}
-          />
+            gameMap={currentMap}         />
         ) : (
           "undefined"
         )}

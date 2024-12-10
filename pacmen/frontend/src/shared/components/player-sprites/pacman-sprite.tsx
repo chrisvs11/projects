@@ -1,22 +1,33 @@
 "use client"
-import { FC, ReactElement } from "react";
+import { CSSProperties, FC, ReactElement } from "react";
 
 import { SpriteAnimator } from "../sprite-animator";
 
 import spriteImage from "../../../../public/images/sprites.png";
 
-import { PacmanProps, PlayerState } from "@/shared/types";
+import { Direction, PacmanProps, PlayerState } from "@/shared/types";
 
 
 const PACMAN_SPRITE_VELOCITY:number = 15
+interface PacmanSpriteOrientation {
+  rotation:number,
+  scaleX:number,
+  scaleY:number,
+}
+const rotationHash:{[key:string]:PacmanSpriteOrientation} = {
+  [Direction.RIGHT]:{rotation:0, scaleX:1, scaleY:1},
+  [Direction.LEFT]:{rotation:0, scaleX:-1, scaleY:1},
+  [Direction.UP]:{rotation:-90, scaleX:1, scaleY:1},
+  [Direction.DOWN]:{rotation:-90, scaleX:1, scaleY:-1}
+}
 
-export const PacmanSprite: FC<PacmanProps> = ({ state,rotation=0, velocity=1, scale=1}) => {
+export const PacmanSprite: FC<PacmanProps> = ({ state,direction = Direction.RIGHT, velocity=1, scale=1}) => {
 
   const fps = PACMAN_SPRITE_VELOCITY * Math.abs(velocity) 
 
-  const FRAME_WIDTH:{x:number,y:number} = {x:50,y:50}
+  const FRAME_WIDTH:{x:number,y:number} = {x:38,y:50}
 
-  const finalRotation = state === PlayerState.DEAD ? 0 : rotation
+  const finalTransform:PacmanSpriteOrientation = state === PlayerState.DEAD ? {rotation:0, scaleX:0, scaleY:0} : rotationHash[direction]
 
   function pacmanSpriteSelector(): ReactElement {
     switch (state) {
@@ -65,11 +76,11 @@ export const PacmanSprite: FC<PacmanProps> = ({ state,rotation=0, velocity=1, sc
     }
   }
 
-
+  const cssProperties:CSSProperties = {transform:`scaleX(${finalTransform.scaleX})  scaleY(${finalTransform.scaleY}) rotate(${finalTransform.rotation/360}turn)`}
 
   return (
 
-    <div style={{transform:`rotate(${finalRotation/360}turn)`}}>
+    <div style={cssProperties}>
       {pacmanSpriteSelector()}
     </div>
 

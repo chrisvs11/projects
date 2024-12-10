@@ -1,3 +1,6 @@
 export * from "./ghost-sprite"
 export * from "./audio-handler"
-export * from "./game_audios"
+export * from "./game-audios"
+export * from "./session-storage"
+export * from "./movement-controller"
+export * from "./player-assistant"
