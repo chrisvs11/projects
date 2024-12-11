@@ -20,7 +20,7 @@ import { MapLayout, Button, MembersDisplay } from "@/shared/components";
 
 import { firebaseService } from "@/shared/services";
 
-import { myAudioProvider } from "@/shared/aux-classes";
+import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
 
 const TILE_WIDTH: number = 10;
 const LOADING_LOBBY_TIME: number = 2000;
@@ -97,7 +97,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
     // const lobbyId: string = SessionStorage.getValue(
     //   SessionStorageName.LOBBY_ID
     // );
-    if (!session.getSession()?.lobbyId) {
+    if (!session.getSession()?.lobbyId || SessionStorage.getValue("lobbyId")) {
       console.error("Not part of these lobby");
       router.push("/lobby");
       return;
