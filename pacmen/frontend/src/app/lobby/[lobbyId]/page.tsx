@@ -97,7 +97,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
     // const lobbyId: string = SessionStorage.getValue(
     //   SessionStorageName.LOBBY_ID
     // );
-    if (!session.getSession()?.lobbyId || SessionStorage.getValue("lobbyId")) {
+    if (!session.getSession()?.lobbyId || !SessionStorage.getValue("lobbyId")) {
       console.error("Not part of these lobby");
       router.push("/lobby");
       return;
