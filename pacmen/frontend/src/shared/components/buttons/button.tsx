@@ -18,7 +18,7 @@ export interface ButtonProps {
 
 }
 
-export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSize="md",ckVariant="solid", cssStyle,className,type="button",onClick, disabled = false,id}) => {
+export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSize="md",ckVariant="solid", cssStyle,className,type="button",onClick,disabled,id}) => {
     return (
         cKBtn ? 
         <BCK 
@@ -30,10 +30,10 @@ export const Button: FC<ButtonProps> = ({cKBtn,btnText,CKColorSchema="gray",cKSi
         style = {cssStyle}
         type={type}
         onClick={onClick}
-        disabled = {disabled}
+        disabled = {disabled || false }
         >
             {btnText}
         </BCK>
-        : <button id={id} disabled={disabled} className={className} onClick={onClick}> {btnText}</button>
+        : <button id={id} disabled={disabled||false} className={className} onClick={onClick}> {btnText}</button>
     )
 }

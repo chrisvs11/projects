@@ -6,21 +6,25 @@ import { Button } from "../../shared/components";
 
 import styles from "./lobbyPage.module.css";
 
-import { myAudioProvider } from "@/shared/aux-classes";
+import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
 
 import { useEffect } from "react";
 
-export default function LobbyPage() {
+import { SessionStorageName } from "@/shared/types";
 
+export default function LobbyPage() {
   useEffect(() => {
-    myAudioProvider.playIntroSongMusic(true)
-  },[])
+    myAudioProvider.playIntroSongMusic(true);
+    SessionStorage.eliminateValue(SessionStorageName.ACTIVE_MEMBER);
+    SessionStorage.eliminateValue(SessionStorageName.GAME_ID);
+    SessionStorage.eliminateValue(SessionStorageName.LOBBY_ID);
+  }, []);
 
   return (
     <div className="body">
       <div className={`card ${styles.card}`}>
         <div className={styles.btn_column}>
-          <p className={styles.btn_label}>HOST</p>{" "}
+          <p className={styles.btn_label}>HOST</p>
           <div className={styles.btn_container}>
             <Link href={"/username"}>
               <Button

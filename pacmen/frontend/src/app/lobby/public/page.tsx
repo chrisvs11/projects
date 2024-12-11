@@ -12,32 +12,29 @@ import Link from "next/link";
 import RingLoader from "react-spinners/RingLoader";
 
 import { firebaseService } from "@/shared/services";
+
 import { myAudioProvider } from "@/shared/aux-classes";
 
 export default function LobbyPage() {
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const filteredLobbies = (lobbies:Lobby[]):Lobby[] => {
-
-    const filteredLobby:Lobby[] = []
-
-    for(let i = 0; i < lobbies.length; i++) {
-      const lobby = lobbies[i]
-      //lobby is full 
-      console.log("lobby",lobby)
-      if(lobby.maxPlayers === lobby.members.length) continue
+  const filteredLobbies = (lobbies: Lobby[]): Lobby[] => {
+    const filteredLobby: Lobby[] = [];
+    for (let i = 0; i < lobbies.length; i++) {
+      const lobby = lobbies[i];
+      //lobby is full
+      console.log("lobby", lobby);
+      if (lobby.maxPlayers === lobby.members.length) continue;
       //lobby is deleted
-      if(lobby.deletedAt) continue
+      if (lobby.deletedAt) continue;
       //lobby is on a game
-      if(lobby.gameStarted) continue
+      if (lobby.gameStarted) continue;
 
-      filteredLobby.push(lobby)
+      filteredLobby.push(lobby);
     }
-    return filteredLobby
-
-  }
-
+    return filteredLobby;
+  };
 
   useEffect(() => {
     const { unsubscribe } = firebaseService.getRealTimeDocuments(
@@ -49,9 +46,8 @@ export default function LobbyPage() {
         }, 1000);
       }
     );
-    myAudioProvider.playIntroSongMusic(true)
+    myAudioProvider.playIntroSongMusic(true);
     return () => unsubscribe();
-   
   }, []);
 
   return (
@@ -59,7 +55,9 @@ export default function LobbyPage() {
       <div className={styles.title}>Lobbies</div>
       <div className={`card ${styles.card}`}>
         <div className={styles.lobby_card}>
-          {!loading && <LobbyTable availableLobbies={filteredLobbies(lobbies)}/>}
+          {!loading && (
+            <LobbyTable availableLobbies={filteredLobbies(lobbies)} />
+          )}
           {loading && (
             <div className={styles.loading}>
               <RingLoader
@@ -74,11 +72,7 @@ export default function LobbyPage() {
       </div>
       <div className={styles.btn_cancel}>
         <Link href={"/lobby"}>
-          <Button
-            cKBtn
-            btnText="BACK"
-            className={`cancel`}
-          />
+          <Button cKBtn btnText="BACK" className={`cancel`} />
         </Link>
       </div>
     </div>

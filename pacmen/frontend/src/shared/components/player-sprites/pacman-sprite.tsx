@@ -27,7 +27,7 @@ export const PacmanSprite: FC<PacmanProps> = ({ state,direction = Direction.RIGH
 
   const FRAME_WIDTH:{x:number,y:number} = {x:38,y:50}
 
-  const finalTransform:PacmanSpriteOrientation = state === PlayerState.DEAD ? {rotation:0, scaleX:0, scaleY:0} : rotationHash[direction]
+  const finalTransform:PacmanSpriteOrientation = state === PlayerState.DEAD ? {rotation:0, scaleX:1, scaleY:1} : rotationHash[direction]
 
   function pacmanSpriteSelector(): ReactElement {
     switch (state) {

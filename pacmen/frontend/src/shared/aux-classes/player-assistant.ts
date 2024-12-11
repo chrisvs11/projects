@@ -2,65 +2,53 @@ import {
   CellType,
   Direction,
   GameMap,
-  GameRole,
   GameState,
   Player,
   PlayerState,
   Position,
 } from "../types";
 
-const OPPOSITE_DIRECTION_HASH:{[key in Direction]:Direction} = {
+const OPPOSITE_DIRECTION_HASH: { [key in Direction]: Direction } = {
   [Direction.UP]: Direction.DOWN,
   [Direction.DOWN]: Direction.UP,
   [Direction.LEFT]: Direction.RIGHT,
-  [Direction.RIGHT]: Direction.LEFT
-}
+  [Direction.RIGHT]: Direction.LEFT,
+};
 export class PlayerAssistant {
   private directionQueue: Direction[] = [];
 
   constructor() {}
 
-  addNewDirection = (direction: Direction, role:GameRole, state:PlayerState) => {
+  addNewDirection = (
+    direction: Direction,
+  ) => {
 
-    console.log("direction",direction,"player",role,"state",state)
+    const inputDirection = direction;
 
-    let inputDirection = direction
-    
-    if(role === GameRole.GHOST  // To be a ghost
-      && this.directionQueue.length > 0 // To have at least one direction
-      && OPPOSITE_DIRECTION_HASH[direction] === this.directionQueue[0]){ // the new direction is equal to the opposite of the default
-      console.log("Ghost cannot go backwards")
-      return
+
+
+    if (this.directionQueue.length > 1) {
+      this.directionQueue[1] = inputDirection;
+      return;
     }
 
-    if(role === GameRole.GHOST && state === PlayerState.SCARE){
-      inputDirection = this.generateRandomDirection()
-    }
+    this.directionQueue.push(inputDirection);
 
-    if(this.directionQueue.length > 1 ) {
-      this.directionQueue[1] = inputDirection
-      return
-    }
-
-    this.directionQueue.push(inputDirection)
-
-      console.log(this.directionQueue);
+    console.log(this.directionQueue);
   };
 
-  generateRandomDirection = ():Direction => {
+  generateRandomDirection = (): Direction => {
+    const dirArray: Direction[] = Object.values(Direction);
+    const randomDirIndex = Math.floor(Math.random() * dirArray.length);
 
-    const dirArray:Direction[] = Object.values(Direction)
-    const randomDirIndex = Math.floor(Math.random()*dirArray.length)
-
-    return dirArray[randomDirIndex]
-
-  }
+    return dirArray[randomDirIndex];
+  };
 
   changeDefaultDirection = (direction: Direction) => {
     this.directionQueue = [direction];
   };
 
-  getDirection = (index:number):Direction | null => {
+  getDirection = (index: number): Direction | null => {
     return this.directionQueue[index] || null;
   };
 
@@ -76,6 +64,17 @@ export class PlayerAssistant {
     if (gameState === GameState.RESTART) return currentPlayerState.start;
 
     if (this.directionQueue.length === 0) return currentPlayerState.position;
+
+    if (currentPlayerState.state === PlayerState.SCARE) {
+      const direction = this.getRandomDir(
+        position,
+        gameMap,
+        this.directionQueue[0]
+      );
+      const scarePosition = this.getPosition(position, gameMap, direction);
+      this.changeDefaultDirection(direction);
+      return scarePosition || currentPlayerState.position;
+    }
 
     const defaultNextPosition: Position | null = this.getPosition(
       position,
@@ -93,6 +92,28 @@ export class PlayerAssistant {
     return (
       newNextPosition || defaultNextPosition || currentPlayerState.position
     );
+  };
+
+  getRandomDir = (
+    currentPosition: Position,
+    gameMap: GameMap,
+    currentDir: Direction
+  ): Direction => {
+    const forbiddenDirection: Direction = OPPOSITE_DIRECTION_HASH[currentDir];
+    const allDirections = [
+      Direction.UP,
+      Direction.DOWN,
+      Direction.LEFT,
+      Direction.RIGHT,
+    ];
+    const validDirections = allDirections.filter((dir) => {
+      return (
+        dir !== forbiddenDirection &&
+        this.getPosition(currentPosition, gameMap, dir)
+      );
+    });
+    const randomIndex = Math.floor(Math.random() * validDirections.length);
+    return validDirections[randomIndex] || currentDir;
   };
 
   getPosition = (

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect,  useState } from "react";
+import { useEffect, useState } from "react";
 
 import styles from "./game.module.css";
 
@@ -14,9 +14,14 @@ import {
   Player,
 } from "@/shared/types";
 
-import { useGameMap, useScoreTracker } from "@/shared/hooks";
+import {  useGameMap, useScoreTracker } from "@/shared/hooks";
 
-import { GameBoard, GameOverCard, GameStats } from "@/shared/components";
+import {
+  Button,
+  GameBoard,
+  GameOverCard,
+  GameStats,
+} from "@/shared/components";
 
 import { firebaseService } from "@/shared/services";
 
@@ -39,16 +44,20 @@ export default function Page({
   const errorFn = () => {
     router.push("404");
   };
-  const isGameReady: boolean =
-    game &&
-    playerId &&
-    localPlayer &&
-    gamePlayersState &&
-    gameMap &&
-    game.gameState !== GameState.END
-      ? true
-      : false;
 
+  const exitHandler = () => {
+    // if(username === hostname) {
+    //   console.log("ending the game")
+    //   updateGameState({
+    //     state: String(GameState.END),
+    //     gameId: gameId
+    //   })
+    // }
+
+    router.push("/");
+    SessionStorage.eliminateValue("lobbyId");
+    SessionStorage.eliminateValue("gameId");
+  };
 
   const endOfGameSounds = () => {
     myAudioProvider.stopAllMusic();
@@ -131,12 +140,22 @@ export default function Page({
 
   return (
     <div className={styles.body}>
+      {game?.gameState !== GameState.END && (
+        <div className={styles.exit_btn_container}>
+          <Button
+            cKBtn={false}
+            btnText={"LEAVE"}
+            className={styles.exit_btn}
+            onClick={() => exitHandler()}
+          />
+        </div>
+      )}
       <div className={`card ${styles.card}`}>
-        {isGameReady && game && (
+        {game && playerId && localPlayer && gamePlayersState && (
           <>
             <div className={`${styles.stats} `}>
               <GameStats
-                lives={game.lives || 99}
+                lives={game.lives}
                 playtime={game.playtime}
                 playerId={playerId || ""}
                 role={localPlayer?.role || GameRole.GHOST}
@@ -152,7 +171,7 @@ export default function Page({
                 gameMap={gameMap}
                 gamePlayerStates={gamePlayersState!}
                 time={game.playtime!}
-                gameId={game.id }
+                gameId={game.id}
                 players={game.players}
                 pacmanId={String(game.pacmanId!)}
                 gameState={game.gameState!}
@@ -161,11 +180,13 @@ export default function Page({
           </>
         )}
         {game?.gameState === GameState.END && (
-          <GameOverCard
-            lives={game?.lives || 99}
-            pacmanScore={scores.pacmanScore}
-            ghostScore={scores.ghostScore}
-          />
+          <div className={styles.game_over_card_container}>
+            <GameOverCard
+              lives={game?.lives || 99}
+              pacmanScore={scores.pacmanScore}
+              ghostScore={scores.ghostScore}
+            />
+          </div>
         )}
       </div>
     </div>

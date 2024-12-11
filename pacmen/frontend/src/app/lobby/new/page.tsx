@@ -14,6 +14,8 @@ import {
   GameMap,
   Lobby,
   LobbyCreationOptions,
+  Session,
+  UserSession,
 } from "@/shared/types";
 
 import {
@@ -32,6 +34,8 @@ import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
 const TILES_WIDTH: number = 10;
 
 const WAIT_TIME: number = 1500;
+
+const session:Session = UserSession.getInstance()
 
 export default function LobbyCreationPage() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -63,7 +67,7 @@ export default function LobbyCreationPage() {
 
   useEffect(() => {
     const newTileWidth =
-      windowWidth >= 1000 ? TILES_WIDTH : windowWidth >= 600 ? 8 : 6;
+      windowWidth >= 1100 ? TILES_WIDTH : windowWidth >= 600 ? 8 : 6;
     setTileWidth(newTileWidth);
   }, [windowWidth]);
 
@@ -73,13 +77,14 @@ export default function LobbyCreationPage() {
       const newLobbyProps: LobbyCreationOptions = {
         maxPlayers: players,
         type: lobbyType,
-        hostUsername: SessionStorage.getValue("username"),
+        hostUsername: session.getSession()?.username|| "",
         mapId: gameMaps![mapIndex].id,
         playtime: time,
         lives: lives,
       };
       const lobby: Lobby = await createLobby(newLobbyProps);
-      SessionStorage.setValue("lobbyId", lobby.id);
+      session.joinLobby(lobby.id)
+      SessionStorage.setValue("lobbyId",lobby.id)
       router.push(`${lobby.id}`);
     } catch (e) {
       console.error(e);
@@ -117,7 +122,7 @@ export default function LobbyCreationPage() {
 
 
   useEffect(() => {
-  
+    session.saveInSessionStorage()
     window.addEventListener("resize", resize);
     myAudioProvider.playIntroSongMusic(true);
 
@@ -147,7 +152,6 @@ export default function LobbyCreationPage() {
                   step={1}
                   setProperty={settingPlayers}
                 />
-
                 <NumPropertyContainer
                   propertyTitle={"Lives"}
                   propertyValue={lives}
@@ -180,6 +184,7 @@ export default function LobbyCreationPage() {
                 <Button
                   cKBtn={true}
                   btnText={`${!isClick ? "CREATE LOBBY" : "CREATING..."}`}
+                  disabled = {isClick}
                   className={`${styles.btn}  continue`}
                   onClick={() => createLobbyHandler()}
                 />

@@ -9,16 +9,22 @@ import { useRouter } from "next/navigation";
 
 import { useCustomQuery, useGameMap, useScoreTracker } from "@/shared/hooks";
 
-import { CollectionName, Lobby } from "@/shared/types";
+import {
+  CollectionName,
+  Lobby,
+  Session,
+  UserSession,
+} from "@/shared/types";
 
 import { MapLayout, Button, MembersDisplay } from "@/shared/components";
 
 import { firebaseService } from "@/shared/services";
 
-import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
+import { myAudioProvider } from "@/shared/aux-classes";
 
 const TILE_WIDTH: number = 10;
 const LOADING_LOBBY_TIME: number = 2000;
+const session: Session = UserSession.getInstance();
 
 export default function Page({ params }: { params: { lobbyId: string } }) {
   //Page states
@@ -37,12 +43,13 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   };
 
   const goBackToIntroPage = () => {
+    session.endSession()
     router.push("/");
   };
 
   const leaveLobbyHandler = () => {
     leaveLobby({ username: playerUsername, lobbyId: lobby?.id || "" });
-    SessionStorage.eliminateValue("lobbyId");
+    goBackToIntroPage();
   };
 
   const autoRouter = (lobby: Lobby) => {
@@ -56,21 +63,18 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
     });
     setTimeout(() => {
       setIsClicked(false);
-    });
+    },1000);
   };
-
-
 
   useEffect(() => {
     if (!lobby) return;
     fetchMap(lobby?.mapId);
 
     if (lobby.gameStarted && lobby.gameId) {
+      session.joinGame(lobby.gameId)
       autoRouter(lobby);
     }
-  }, [lobby]);
 
-  useEffect(() => {
     setTimeout(() => {
       setLoading(false);
     }, LOADING_LOBBY_TIME);
@@ -84,21 +88,23 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
       (data: Lobby) => setLobby(data),
       () => errorFn()
     );
-
-    SessionStorage.setValue("activeMember","true")
+    session.saveInSessionStorage();
 
     //AudioLogic
     myAudioProvider.playIntroSongMusic(true);
 
     //Load Data from Session Storage
-    const lobbyId: string = SessionStorage.getValue("lobbyId");
-    if (!lobbyId) {
+    // const lobbyId: string = SessionStorage.getValue(
+    //   SessionStorageName.LOBBY_ID
+    // );
+    if (!session.getSession()?.lobbyId) {
       console.error("Not part of these lobby");
       router.push("/lobby");
       return;
     }
-    const saveUsername: string = SessionStorage.getValue("username");
-    if (saveUsername) setPlayerUsername(SessionStorage.getValue("username"));
+    const sessionUsername: string = session.getSession()?.username||"";
+    if(sessionUsername) return router.push("/lobby")
+    setPlayerUsername(sessionUsername);
 
     clearAll();
 
@@ -111,7 +117,6 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
 
   return (
     <div className="body">
-      {lobby && !lobby.deletedAt && <div className={styles.clock}>Start Time: {Math.max(lobby.startTime||60,0)} s</div>}
       <div className={`card ${styles.card}`}>
         {!loading && (
           <div className={styles.header_container}>

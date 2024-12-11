@@ -13,15 +13,17 @@ import { useGameMap } from "./useGameMap.hook";
 import { usePacman } from "./usePacman.hook";
 import { useCollisionHandler } from "./useCollisionHandler.hook";
 
+
 const POWER_UP_TIME: number = 10000;
 const EXTEND_MUSIC_TIMER: number = 1500;
 
 export const useGameUpdate = (gamePlayerState:GamePlayersStates) => {
   const { getMapTileItem } = useGameMap();
   const { scareGhosts, returnToNormalGhosts } = usePacman();
+  const { caughtHandler } = useCollisionHandler()
   const [powerTimerId, setPowerTimerId] = useState<NodeJS.Timeout>();
   const [frightTimerId, setFrightTimerId] = useState<NodeJS.Timeout>();
-  const { getCaught } = useCollisionHandler();
+
 
   const startUpdate = (
     gameState: GameState,
@@ -99,25 +101,31 @@ export const useGameUpdate = (gamePlayerState:GamePlayersStates) => {
     return true;
   };
 
-  const collisionChecker = (
+  const collisionChecker = async (
     playersState: GamePlayersStates,
     pacmanId: string,
     gameId: string,
     lives: number,
     pacmanScoreUpdate: (points: number) => void,
     ghostScoreUpdate: (points: number) => void
-  ): boolean => {
-    const caught = getCaught(playersState, pacmanId, gameId, lives);
-    switch (caught.player) {
-      case GameRole.PACMAN:
-        ghostScoreUpdate(caught.points);
-        return true;
-      case GameRole.GHOST:
-        pacmanScoreUpdate(caught.points);
-        return true;
-      default:
-        return false;
+  ): Promise<boolean> => {
+    try {
+      const caught = await caughtHandler(playersState, pacmanId, gameId, lives);
+      switch (caught.player) {
+        case GameRole.PACMAN:
+          ghostScoreUpdate(caught.points);
+          return true;
+        case GameRole.GHOST:
+          pacmanScoreUpdate(caught.points);
+          return true;
+        default:
+          return false;
+      }
+    } catch(e) {
+      console.error("Error",e)
+      return false
     }
+    
   };
 
   return {

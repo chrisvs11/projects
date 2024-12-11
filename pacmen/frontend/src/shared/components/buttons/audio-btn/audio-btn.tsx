@@ -24,7 +24,7 @@ export const AudioBtn: FC = () => {
   return (
     <div className={styles.audio_btn_container}>
       <Button
-        cKBtn={true}
+        cKBtn={false}
         btnText={audioText}
         className={styles.audio_btn}
         CKColorSchema="none"

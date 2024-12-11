@@ -9,7 +9,7 @@ export const NetworkSignal: FC = () => {
 
   return (
     <div  className={`${styles.signal_container}`}>
-      <div>{state?.online ? "ONLINE" : "OFFLINE"}</div>
+      {/* <div>{state?.online ? "ONLINE" : "OFFLINE"}</div> */}
       <div
         className={`${styles.signal} ${
           state?.online ? styles.online : styles.offline

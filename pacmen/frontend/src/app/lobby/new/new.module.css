@@ -6,6 +6,12 @@
     font-style: italic;
 }
 
+.card {
+    width: 95%;
+    max-width: 800px;
+    min-width: 400px;
+}
+
 .loading {
     height: 200px;
     width: 450px;
@@ -81,7 +87,7 @@
 @media screen and (max-width:600px) {
     
     .card {
-        width: 600px;
+        width: 80%;
     }
 
     

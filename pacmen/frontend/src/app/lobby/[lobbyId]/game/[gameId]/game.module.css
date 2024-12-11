@@ -37,7 +37,30 @@
   flex-grow: 1.2;
 }
 
-.game_over_container {
-  width: 100%;
+.game_over_card_container {
+  position: absolute;
 }
 
+.exit_btn_container {
+  width: 120px;
+  height: 45px;
+  position:absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 5;
+}
+
+.exit_btn {
+  color: white;
+  background-color: grey;
+  border-radius: 6px;
+  width: 100%;
+  height: 100%;
+  transition: 0.5s ;
+  font-weight: 1000;
+}
+
+.exit_btn:hover {
+  background-color: red;
+  scale: 1.2;
+}

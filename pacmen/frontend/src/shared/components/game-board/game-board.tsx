@@ -1,22 +1,23 @@
 "use client";
 import { FC, useCallback, useEffect, useRef, useState } from "react";
+
 import {
   Direction,
   GameMap,
   GamePlayersStates,
+  GameRole,
   GameState,
   MoveVector,
   Player,
   Position,
 } from "@/shared/types";
-import {
-  DirectionCard,
-  GameController,
-  MapLayout,
-  PlayerAvatar,
-} from "..";
+
+import { DirectionCard, GameController, MapLayout, PlayerAvatar } from "..";
+
 import styles from "./game-board.module.css";
+
 import { PlayerAssistant } from "@/shared/aux-classes";
+
 import { useCustomQuery, useGameUpdate, useScoreTracker } from "@/shared/hooks";
 
 interface GameBoardProps {
@@ -33,10 +34,15 @@ interface GameBoardProps {
 }
 const TILE_WIDTH: number = 21;
 
-const FPS: number = 60 / 10;
+const FPS: number = 60 / 15;
 
-const MAP_OFFSET = {
-  X: -TILE_WIDTH * 0.4,
+const MAP_OFFSET_PACMEN = {
+  X: -TILE_WIDTH * 0.1,
+  Y: -TILE_WIDTH * 0.4,
+};
+
+const MAP_OFFSET_GHOSTS = {
+  X: -TILE_WIDTH * 0.5,
   Y: -TILE_WIDTH * 0.4,
 };
 const localPlayerAssistant: PlayerAssistant = new PlayerAssistant();
@@ -75,9 +81,6 @@ export const GameBoard: FC<GameBoardProps> = ({
   const eventListenerKeyDown = (e: KeyboardEvent) => {
     console.log("arrow pressed", e.key);
 
-    const { role, state } = gamePlayerStateRef.current[playerId];
-    //Ghost cannot move backwards
-
     //Lock the direction listener
     if (directionInCoolDown.current) return;
     const inputDirection: Direction = KEY_TO_DIRECTION[e.key];
@@ -85,7 +88,7 @@ export const GameBoard: FC<GameBoardProps> = ({
     //No valid direction input
     if (!inputDirection) return;
 
-    localPlayerAssistant.addNewDirection(inputDirection, role, state);
+    localPlayerAssistant.addNewDirection(inputDirection);
 
     directionInCoolDown.current = true;
     setTimeout(() => {
@@ -93,15 +96,16 @@ export const GameBoard: FC<GameBoardProps> = ({
     }, DIRECTION_COLD_DOWN_TIME);
   };
 
-  // const toggleSignalBlock = () => {
-  //   signalBlockRef.current = !signalBlockRef.current;
-  // };
 
-  const moveActivePlayer = async (player: Player, gameMap: GameMap) => {
-    const gameState = gameStateRef.current;
-
-    if (signalBlockRef.current) return;
-
+  const moveActivePlayer = async (
+    player: Player,
+    gameMap: GameMap,
+    gameState: GameState
+  ) => {
+    if (signalBlockRef.current || gameState !== GameState.ON_GOING) {
+      return;
+    }
+    
     const nextPosition: Position = localPlayerAssistant.getPlayerNextPosition(
       gameState,
       player,
@@ -130,10 +134,14 @@ export const GameBoard: FC<GameBoardProps> = ({
   };
 
   useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
+  useEffect(() => {
     if (!gameMap || !gamePlayerStates) return;
 
     gamePlayerStateRef.current = gamePlayerStates;
-    gameStateRef.current = gameState;
+
     gameMapRef.current = gameMap;
 
     startUpdate(
@@ -147,7 +155,7 @@ export const GameBoard: FC<GameBoardProps> = ({
       lives,
       gameMap
     );
-  }, [gamePlayerStates, playerId, gameMap, lives]);
+  }, [gamePlayerStates, gameMap, lives]);
 
   useEffect(() => {
     const newTileWidth =
@@ -161,10 +169,13 @@ export const GameBoard: FC<GameBoardProps> = ({
     const renderFrame = async () => {
       frameCountRef.current += 1;
       if (frameCountRef.current % FPS === 0) {
-        console.log("render frame number", frameCountRef);
         const localPlayerState: Player | undefined =
           gamePlayerStateRef.current[playerId];
-        await moveActivePlayer(localPlayerState, gameMapRef.current);
+        await moveActivePlayer(
+          localPlayerState,
+          gameMapRef.current,
+          gameStateRef.current
+        );
       }
       animationFrameId = requestAnimationFrame(renderFrame);
     };
@@ -204,8 +215,14 @@ export const GameBoard: FC<GameBoardProps> = ({
           players.map((player: Player) => {
             const playerStat = gamePlayerStates[String(player.id)];
             const commonProps = {
-              offsetX: MAP_OFFSET.X,
-              offsetY: MAP_OFFSET.Y,
+              offsetX:
+                player.role === GameRole.GHOST
+                  ? MAP_OFFSET_GHOSTS.X
+                  : MAP_OFFSET_PACMEN.X,
+              offsetY:
+                player.role === GameRole.GHOST
+                  ? MAP_OFFSET_GHOSTS.Y
+                  : MAP_OFFSET_PACMEN.Y,
               playerNum: player.id,
               ghostType: player.type,
               role: player.role,
@@ -231,7 +248,9 @@ export const GameBoard: FC<GameBoardProps> = ({
         onClick={() => toggleSignalBlock()}
       /> */}
       <div className={styles.controller}>
-        <GameController onClick={() => localPlayerAssistant.addNewDirection} />
+        <GameController
+          onClick={(direction:Direction) => localPlayerAssistant.addNewDirection(direction)}
+        />
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 import { useEffect, useState } from "react";
 
-import { CollectionName, Lobby } from "@/shared/types";
+import { CollectionName, Lobby, Session, UserSession } from "@/shared/types";
 
 import { firebaseService } from "@/shared/services";
 
@@ -24,11 +24,13 @@ interface FormValues {
   username: string;
 }
 
+const session: Session = UserSession.getInstance();
+
 const RESTRICTED_NAMES: string[] = ["blinky", "inky", "pinky", "clyde"];
 
 export default function Page() {
   const [lobby, setLobby] = useState<Lobby>();
-  const {joinLobby} = useCustomQuery()
+  const { joinLobby } = useCustomQuery();
   const router = useRouter();
   const checkUsernameAvailability = (username: string): boolean => {
     if (!lobby) return true;
@@ -39,10 +41,10 @@ export default function Page() {
     return isAvailable;
   };
 
-  const autoRouter = (lobbyId:string) => {
-    const isMemberAlready = SessionStorage.getValue("activeMember")
-    if(lobbyId && isMemberAlready) router.push(`lobby/${lobbyId}`);
-  }
+  const autoRouter = (lobbyId: string) => {
+    const isMemberAlready = SessionStorage.getValue("activeMember");
+    if (lobbyId && isMemberAlready) router.push(`lobby/${lobbyId}`);
+  };
 
   const validationSchema = Yup.object<FormValues>().shape({
     username: Yup.string()
@@ -51,14 +53,15 @@ export default function Page() {
       .test(
         "not-restricted-name",
         "Username restricted to an NPC",
-        (value) => !value || !RESTRICTED_NAMES.includes(value.toLocaleLowerCase())
+        (value) =>
+          !value || !RESTRICTED_NAMES.includes(value.toLocaleLowerCase())
       )
       .test("username taken", "Username already taken", (value) =>
         checkUsernameAvailability(value.toLocaleLowerCase().trim())
       ),
   });
 
-  const fetchLobby = async (lobbyId:string) => {
+  const fetchLobby = async (lobbyId: string) => {
     try {
       const lobby = (await firebaseService.getData(
         CollectionName.LOBBIES,
@@ -71,19 +74,22 @@ export default function Page() {
   };
 
   const joinHandler = async (username: string, lobbyId: string) => {
-    try{
-      await joinLobby({username,lobbyId})
+    try {
+      await joinLobby({ username, lobbyId });
       router.push(`lobby/${lobbyId}`);
-    } catch(e) {
-      console.error(e)
+    } catch (e) {
+      console.error(e);
     }
   };
 
   const onSubmit = () => {
-    const lobbyId = SessionStorage.getValue("lobbyId");
-    SessionStorage.setValue("username", values.username);
-    if (!lobbyId) return router.push("/lobby/new");
-    joinHandler(values.username, lobbyId);
+    const lobbyId = session.getSession()?.lobbyId;
+    if (!lobbyId) {
+      session.startSession(values.username);
+      return router.push("/lobby/new");
+    } else {
+      joinHandler(values.username, lobbyId);
+    }
   };
 
   const goBack = () => {
@@ -92,21 +98,21 @@ export default function Page() {
 
   const { values, errors, touched, handleSubmit, handleChange } =
     useFormik<FormValues>({
-      initialValues:{username:SessionStorage.getValue("username")},
+      initialValues: { username: SessionStorage.getValue("username") },
       validationSchema,
       onSubmit,
     });
 
-
   useEffect(() => {
-    const lobbyId = SessionStorage.getValue("lobbyId") || ""
+    session.saveInSessionStorage()
+    const lobbyId = SessionStorage.getValue("lobbyId") || "";
     fetchLobby(lobbyId);
-    myAudioProvider.playIntroSongMusic(true)
+    myAudioProvider.playIntroSongMusic(true);
     //If join to a lobby previously, it will go there
-    autoRouter(lobbyId)
-    return (() => {
-      myAudioProvider.playIntroSongMusic(false)
-    })
+    autoRouter(lobbyId);
+    return () => {
+      myAudioProvider.playIntroSongMusic(false);
+    };
   }, []);
 
   return (

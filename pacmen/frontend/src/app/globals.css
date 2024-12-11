@@ -92,3 +92,13 @@
 }
 
 
+.page_module {
+  display: flex;
+  position: absolute;
+  z-index: 10;
+  right: 15px;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  height: 30px;
+}
