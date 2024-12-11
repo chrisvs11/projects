@@ -42,8 +42,7 @@ export default function Page() {
   };
 
   const autoRouter = (lobbyId: string) => {
-    const isMemberAlready = SessionStorage.getValue("activeMember");
-    if (lobbyId && isMemberAlready) router.push(`lobby/${lobbyId}`);
+    if (lobbyId ) router.push(`lobby/${lobbyId}`);
   };
 
   const validationSchema = Yup.object<FormValues>().shape({
