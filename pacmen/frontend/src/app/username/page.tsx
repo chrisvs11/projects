@@ -83,7 +83,7 @@ export default function Page() {
   };
 
   const onSubmit = () => {
-    const lobbyId = session.getSession()?.lobbyId;
+    const lobbyId = session.getSession()?.lobbyId || SessionStorage.getValue("lobbyId");
     if (!lobbyId) {
       session.startSession(values.username);
       return router.push("/lobby/new");
