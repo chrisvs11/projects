@@ -103,7 +103,7 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
       return;
     }
     const sessionUsername: string = session.getSession()?.username||"";
-    if(sessionUsername) return router.push("/lobby")
+    if(!sessionUsername) return router.push("/lobby")
     setPlayerUsername(sessionUsername);
 
     clearAll();
