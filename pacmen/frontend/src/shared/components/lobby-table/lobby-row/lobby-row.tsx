@@ -1,4 +1,4 @@
-import { Lobby } from "@/shared/types";
+import { Lobby, Session, UserSession } from "@/shared/types";
 import { FC } from "react";
 import { Button } from "../../buttons";
 import { SessionStorage } from "@/shared/aux-classes";
@@ -10,6 +10,8 @@ interface lobbyRowProps {
   lobby: Lobby;
 }
 
+const session:Session = UserSession.getInstance()
+
 const playerImage: string =
   "https://seeklogo.com/images/P/pacman-ghost-logo-4E0E79293D-seeklogo.com.png";
 
@@ -17,7 +19,8 @@ export const LobbyRow: FC<lobbyRowProps> = ({ className, lobby }) => {
   const router = useRouter();
 
   const clickHandler = (lobbyId: string) => {
-    SessionStorage.setValue("lobbyId", lobbyId);
+    session.joinLobby(lobbyId)
+    session.saveInSessionStorage()
     router.push("/username");
   };
 
