@@ -1,7 +1,6 @@
 import { Lobby, Session, UserSession } from "@/shared/types";
 import { FC } from "react";
 import { Button } from "../../buttons";
-import { SessionStorage } from "@/shared/aux-classes";
 import { useRouter } from "next/navigation";
 import styles from "./lobby_row.module.css"
 
