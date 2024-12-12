@@ -6,18 +6,19 @@ import { Button } from "../../shared/components";
 
 import styles from "./lobbyPage.module.css";
 
-import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
+import { myAudioProvider } from "@/shared/aux-classes";
 
 import { useEffect } from "react";
 
-import { SessionStorageName } from "@/shared/types";
+import { Session, UserSession } from "@/shared/types";
+
+const session:Session = UserSession.getInstance()
 
 export default function LobbyPage() {
   useEffect(() => {
     myAudioProvider.playIntroSongMusic(true);
-    SessionStorage.eliminateValue(SessionStorageName.ACTIVE_MEMBER);
-    SessionStorage.eliminateValue(SessionStorageName.GAME_ID);
-    SessionStorage.eliminateValue(SessionStorageName.LOBBY_ID);
+    session.clearSession()
+    session.saveInSessionStorage()
   }, []);
 
   return (

@@ -22,7 +22,7 @@ export default function Page() {
           <Link href={"/lobby"}>
             <Button
               cKBtn={false}
-              btnText={"LET´s PLAY"}
+              btnText={"LETS PLAY"}
               className={styles.btn}
               CKColorSchema="green"
               disabled={false}

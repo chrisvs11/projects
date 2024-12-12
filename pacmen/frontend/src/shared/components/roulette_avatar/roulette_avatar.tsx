@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC,  useState } from "react";
 
 import { GhostSprite, PacmanSprite } from "../player-sprites";
 
@@ -10,10 +10,9 @@ import { Button } from "../buttons";
 
 import { useCustomQuery } from "@/shared/hooks";
 
-import { SessionStorage } from "@/shared/aux-classes";
-
 interface RouletteAvatarProps {
   username: string;
+  localUsername:string;
   role: GameRole;
   type: GhostTypes;
   rouletteEnded: boolean;
@@ -23,13 +22,14 @@ interface RouletteAvatarProps {
 
 export const RouletteAvatar: FC<RouletteAvatarProps> = ({
   username,
+  localUsername,
   role,
   type,
   ready,
   gameId,
   rouletteEnded,
 }) => {
-  const [playerUsername, setPlayerUsername] = useState<string>("");
+
   const { readyPlayer } = useCustomQuery();
   const [, setDataSent] = useState<boolean>(false)
  
@@ -37,17 +37,13 @@ export const RouletteAvatar: FC<RouletteAvatarProps> = ({
     try {
     const result = await readyPlayer({
       gameId,
-      username:playerUsername,
+      username:localUsername,
     })
     if(result) setDataSent(true)
   }catch(e) {
     console.log(e)
   }
   }
-
-  useEffect(() => {
-    setPlayerUsername(SessionStorage.getValue("username"));
-  }, []);
 
   return (
     <div className={styles.card}>
@@ -76,7 +72,7 @@ export const RouletteAvatar: FC<RouletteAvatarProps> = ({
         )}
         {role === GameRole.PACMAN && <PacmanSprite state={PlayerState.ALIVE} />}
       </div>
-      {playerUsername === username ? (
+      {localUsername === username ? (
         <>
           <Button
             id={"ready_btn"}

@@ -12,6 +12,8 @@ import {
   GameRole,
   GameState,
   Player,
+  Session,
+  UserSession,
 } from "@/shared/types";
 
 import {  useGameMap, useScoreTracker } from "@/shared/hooks";
@@ -25,9 +27,11 @@ import {
 
 import { firebaseService } from "@/shared/services";
 
-import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
+import { myAudioProvider } from "@/shared/aux-classes";
 
 const WAIT_TIME: number = 5000;
+
+const session:Session = UserSession.getInstance()
 
 export default function Page({
   params: { gameId },
@@ -38,7 +42,6 @@ export default function Page({
   const [gamePlayersState, setGamePlayerState] = useState<GamePlayersStates>();
   const { scores } = useScoreTracker();
   const { fetchMap, gameMap, numPellets } = useGameMap();
-  const [playerId, setPlayerId] = useState<string>();
   const [localPlayer, setLocalPlayer] = useState<Player>();
   const router = useRouter();
   const errorFn = () => {
@@ -46,17 +49,7 @@ export default function Page({
   };
 
   const exitHandler = () => {
-    // if(username === hostname) {
-    //   console.log("ending the game")
-    //   updateGameState({
-    //     state: String(GameState.END),
-    //     gameId: gameId
-    //   })
-    // }
-
-    router.push("/");
-    SessionStorage.eliminateValue("lobbyId");
-    SessionStorage.eliminateValue("gameId");
+    router.push("/lobby");
   };
 
   const endOfGameSounds = () => {
@@ -105,9 +98,9 @@ export default function Page({
   }, [game]);
 
   useEffect(() => {
-    if (localPlayer || !game || !playerId) return;
-    setLocalPlayer(game.players[parseInt(playerId) - 1]);
-  }, [game, localPlayer, playerId]);
+    if(!game) return 
+    setLocalPlayer(game.players[parseInt(session.getSession().playerId) - 1]);
+  }, [game, localPlayer]);
 
   useEffect(() => {
     //Start subscription for real database
@@ -126,10 +119,6 @@ export default function Page({
     );
 
     //Load data from session storage
-    const lobbyId = SessionStorage.getValue("lobbyId");
-    const playerId = SessionStorage.getValue("playerId");
-    if (!lobbyId || !playerId) router.push("/");
-    setPlayerId(playerId);
 
     return () => {
       console.log("eliminating websockets...");
@@ -151,13 +140,13 @@ export default function Page({
         </div>
       )}
       <div className={`card ${styles.card}`}>
-        {game && playerId && localPlayer && gamePlayersState && (
+        {game && localPlayer && gamePlayersState && (
           <>
             <div className={`${styles.stats} `}>
               <GameStats
                 lives={game.lives}
                 playtime={game.playtime}
-                playerId={playerId || ""}
+                playerId={session.getSession().playerId}
                 role={localPlayer?.role || GameRole.GHOST}
                 numPellets={numPellets}
               />
@@ -166,7 +155,7 @@ export default function Page({
             <div className={`${styles.game}`}>
               <GameBoard
                 waitTime={WAIT_TIME}
-                playerId={playerId!}
+                playerId={session.getSession().playerId}
                 lives={game.lives!}
                 gameMap={gameMap}
                 gamePlayerStates={gamePlayersState!}
@@ -182,10 +171,12 @@ export default function Page({
         {game?.gameState === GameState.END && (
           <div className={styles.game_over_card_container}>
             <GameOverCard
-              lives={game?.lives || 99}
+              lives={game.lives}
               pacmanScore={scores.pacmanScore}
-              ghostScore={scores.ghostScore}
-            />
+              ghostScore={scores.ghostScore} 
+              lobbyId={session.getSession().lobbyId} 
+              username={session.getSession().username} 
+              />
           </div>
         )}
       </div>

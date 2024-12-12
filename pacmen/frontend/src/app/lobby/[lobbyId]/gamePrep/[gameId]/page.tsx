@@ -14,45 +14,34 @@ import {
   Game,
   GameRole,
   GameState,
-  Lobby,
+  Session,
+  UserSession,
 } from "@/shared/types";
 
 import { useCustomQuery, useRoulette } from "@/shared/hooks";
 
-import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
+import { myAudioProvider } from "@/shared/aux-classes";
 
 import styles from "./game-prep.module.css";
 
 const READY_TIME:number = 30;
+
+const session:Session = UserSession.getInstance()
 
 export default function Page({
   params: { lobbyId, gameId },
 }: {
   params: { lobbyId: string; gameId: string };
 }) {
-
   const [game, setGame] = useState<Game>();
   const [time, setTime] = useState<number>(READY_TIME)
   const [allPlayersReady, setAllPlayersReady] = useState<boolean>(false);
   const [pacmanUsername, setPacmanUsername] = useState<string>();
   const { participants, startRoulette, setParticipants, rouletteEnded } =
     useRoulette(pacmanUsername || "");
-  const [lobby, setLobby] = useState<Lobby | null>(null);
   const { startGame,updateGameState } = useCustomQuery();
-  const [playerUsername, setPlayerUsername] = useState<string>("");
   const router = useRouter();
 
-  const fetchLobby = async (lobbyId: string) => {
-    try {
-      const lobby = (await firebaseService.getData<Lobby>(
-        CollectionName.LOBBIES,
-        lobbyId
-      )) as Lobby;
-      setLobby(lobby);
-    } catch (e) {
-      console.error("Failed to fetch the game:", e);
-    }
-  };
 
   const startGameHandler = async () => {
     try {
@@ -72,19 +61,19 @@ export default function Page({
     }
   };
 
-  const autoRouter = (game: Game) => {
+  const routerToGameBoard = (game: Game) => {
     if (game.gameState === GameState.START) {
-      SessionStorage.setValue("gameId",game.id)
+      session.joinGame(game.id)
+      session.saveInSessionStorage()
       router.push(`/lobby/${lobbyId}/game/${gameId}`);
-
     }
   };
 
-  useEffect(() => {
-    if(time < 0) {
-      startGameHandler()
-    }
-  },[time])
+  // useEffect(() => {
+  //   if(time < 0) {
+  //     startGameHandler()
+  //   }
+  // },[time])
 
   useEffect(() => {
     //Start Pacman Roulette
@@ -100,39 +89,40 @@ export default function Page({
 
   useEffect(() => {
     if (!game) return;
+
     setParticipants(game.players);
+    
     const pacmanPlayer = game.players.find(
       (player) => player.role === GameRole.PACMAN
     );
-    if (!pacmanPlayer) return;
-    setPacmanUsername(pacmanPlayer.username);
-    const playerId = game.players.find(
-      (player) => player.username === SessionStorage.getValue("username")
-    )?.id;
 
-    SessionStorage.setValue("playerId", `${playerId}`);
+    if (!pacmanPlayer) throw new Error ("pacman player not found");
+
+    setPacmanUsername(pacmanPlayer.username);
+
     setAllPlayersReady(game.players.every((player) => player.ready));
-    autoRouter(game);
+
+    routerToGameBoard(game);
   }, [game]);
 
   useEffect(() => {
-    const unsubscribe: Unsubscribe = firebaseService.getRealTimeDocument<Game>(
+    const gameSubs: Unsubscribe = firebaseService.getRealTimeDocument<Game>(
       CollectionName.GAMES,
       gameId,
       setGame,
       () => console.log("Error")
     );
+
     const startTimer:NodeJS.Timeout = setInterval(() => {
       setTime(prev => prev -1)
     },1000)
-    const username = SessionStorage.getValue("username");
-    if (!username) throw new Error("Username not found");
-    setPlayerUsername(username);
+
     myAudioProvider.stopAllMusic();
-    fetchLobby(lobbyId);
+
+
     return () => {
       clearTimeout(startTimer)
-      unsubscribe();
+      gameSubs();
     };
   }, []);
 
@@ -156,6 +146,7 @@ export default function Page({
                   rouletteEnded={rouletteEnded}
                   ready={player.ready && rouletteEnded}
                   gameId={gameId}
+                  localUsername={session.getSession().username}
                 />
               </div>
             );
@@ -168,11 +159,11 @@ export default function Page({
             )?.username
           }</span> is the next Pacman!</p>
         )}
-        {playerUsername === lobby?.hostUsername && (
+        {session.getSession().username === session.getSession().lobbyHost && (
           <div className={styles.ready_btn_container}>
             <Button
               cKBtn={true}
-              btnText={allPlayersReady ? "LET´S PLAY!" : "PLAYERS READY?"}
+              btnText={allPlayersReady ? "START!" : "PLAYERS READY?"}
               className={`${
                 allPlayersReady ? styles.ready_btn : styles.inactive
               }`}

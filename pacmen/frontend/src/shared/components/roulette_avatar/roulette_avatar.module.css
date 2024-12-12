@@ -1,7 +1,7 @@
 .card {
     display: grid;
     height: 150px;
-    grid-template-rows: 15px 20px 50px 60px;
+    grid-template-rows: 15px 30px 50px 60px;
     grid-template-areas: 
         "selector"
         "username"
@@ -14,6 +14,7 @@
     width: 120px;
     padding: 10px;
     border-radius: 6px;
+    row-gap: 4px;
 }
 
 .player_avatar {

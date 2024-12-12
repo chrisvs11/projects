@@ -6,15 +6,13 @@ import { Button } from "../buttons";
 
 import { useCustomQuery } from "@/shared/hooks";
 
-import { Direction, GhostTypes, MemberCardProps } from "@/shared/types";
+import { Direction, GhostTypes, MemberCardProps, Session, UserSession } from "@/shared/types";
 
 import styles from "./member-card.module.css";
 
 import { GhostSprite } from "../player-sprites";
 
 import { useLobbyLeaveMutation } from "@/shared/services/tanstack-query";
-
-import { SessionStorage } from "@/shared/aux-classes";
 
 const ghostSelector: { [key: string]: GhostTypes } = {
   blinky: GhostTypes.BLINKY,
@@ -25,6 +23,8 @@ const ghostSelector: { [key: string]: GhostTypes } = {
   purpky:GhostTypes.PURPKY
 
 };
+
+const session:Session = UserSession.getInstance()
 
 export const MemberCard: FC<MemberCardProps> = ({
   username,
@@ -37,7 +37,6 @@ export const MemberCard: FC<MemberCardProps> = ({
   const [ghost, setGhost] = useState<GhostTypes>(GhostTypes.BLINKY);
   const [npc, setNPC] = useState<boolean>(false);
   const {updateGhostType} = useCustomQuery()
-  const [playerUsername, setPlayerUsername] = useState<string>("")
 
   const { mutate } = useLobbyLeaveMutation({
     onSuccess: () => {
@@ -91,15 +90,11 @@ export const MemberCard: FC<MemberCardProps> = ({
     setNPC(checkNPC(username));
   },[username]);
 
-  useEffect(() => {
-    setPlayerUsername(SessionStorage.getValue("username"))
-  })
-
   return (
     <div className={styles.card}>
       <span>P{playerNumber}</span>
       <div className={styles.avatar_container}>
-        {!npc && playerUsername === username && (
+        {!npc && session.getSession().username === username && (
           <Button
             btnText="<"
             cKBtn={false}
@@ -114,7 +109,7 @@ export const MemberCard: FC<MemberCardProps> = ({
           scale={0.8}
           fps={8}
         />
-        {!npc && playerUsername === username &&(
+        {!npc && session.getSession().username === username &&(
           <Button
             btnText=">"
             cKBtn={false}
@@ -125,7 +120,7 @@ export const MemberCard: FC<MemberCardProps> = ({
       </div>
       <div className={styles.username_container}>
         {`${username} `} {isHost && "👑"}
-        {playerUsername === hostUsername && username !== hostUsername && (
+        {session.getSession().username === hostUsername && username !== hostUsername && (
           <Button
             btnText="🗑"
             className={styles.delete_btn}

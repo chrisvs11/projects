@@ -3,7 +3,7 @@ import { FC, useEffect, useState } from "react";
 
 import styles from "./members-display.module.css";
 
-import { Lobby } from "@/shared/types";
+import { Lobby, Session, UserSession } from "@/shared/types";
 
 import { Button, MemberCard } from "..";
 
@@ -12,12 +12,12 @@ import { useCustomQuery, useNPC } from "@/shared/hooks";
 
 interface MembersDisplayProps {
   lobby: Lobby;
-  currentUsername: string;
 }
+
+const session:Session = UserSession.getInstance()
 
 export const MembersDisplay: FC<MembersDisplayProps> = ({
   lobby,
-  currentUsername,
 }) => {
   const { getNPCName } = useNPC();
   const [isClickable, setIsClickable] = useState<boolean>(true);
@@ -66,7 +66,7 @@ export const MembersDisplay: FC<MembersDisplayProps> = ({
             />
           ))}
         </div>
-        {currentUsername === lobby.hostUsername && (
+        { session.getSession().username === lobby.hostUsername && (
           <div className={styles.add_btn_container}>
             <Button
               cKBtn

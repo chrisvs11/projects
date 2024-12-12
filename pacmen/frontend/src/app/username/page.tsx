@@ -18,22 +18,24 @@ import { Button, Input } from "@/shared/components";
 
 import { useCustomQuery } from "@/shared/hooks";
 
-import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
+import { myAudioProvider } from "@/shared/aux-classes";
 
+const RESTRICTED_NAMES: string[] = ["blinky", "inky", "pinky", "clyde"];
 interface FormValues {
   username: string;
 }
-
 const session: Session = UserSession.getInstance();
-
-const RESTRICTED_NAMES: string[] = ["blinky", "inky", "pinky", "clyde"];
 
 export default function Page() {
   const [lobby, setLobby] = useState<Lobby>();
+  const [lobbyId,setLobbyId] = useState<string>()
   const { joinLobby } = useCustomQuery();
   const router = useRouter();
+
+
   const checkUsernameAvailability = (username: string): boolean => {
     if (!lobby) return true;
+
     const isAvailable: boolean = lobby.members.every(
       (member) =>
         member.username.toLocaleLowerCase() !== username.toLocaleLowerCase()
@@ -41,9 +43,6 @@ export default function Page() {
     return isAvailable;
   };
 
-  const autoRouter = (lobbyId: string) => {
-    if (lobbyId ) router.push(`lobby/${lobbyId}`);
-  };
 
   const validationSchema = Yup.object<FormValues>().shape({
     username: Yup.string()
@@ -82,9 +81,10 @@ export default function Page() {
   };
 
   const onSubmit = () => {
-    const lobbyId = session.getSession()?.lobbyId || SessionStorage.getValue("lobbyId");
+    const lobbyId = session.getSession()?.lobbyId;
+    session.startSession(values.username);
+    session.saveInSessionStorage()
     if (!lobbyId) {
-      session.startSession(values.username);
       return router.push("/lobby/new");
     } else {
       joinHandler(values.username, lobbyId);
@@ -97,18 +97,21 @@ export default function Page() {
 
   const { values, errors, touched, handleSubmit, handleChange } =
     useFormik<FormValues>({
-      initialValues: { username: SessionStorage.getValue("username") },
+      initialValues: { username: session.getSession().username },
       validationSchema,
       onSubmit,
     });
 
   useEffect(() => {
-    session.saveInSessionStorage()
-    const lobbyId = SessionStorage.getValue("lobbyId") || "";
+    if(!lobbyId) return 
     fetchLobby(lobbyId);
+  },[lobbyId])
+
+  useEffect(() => {
+    const lobbyId = session.getSession().lobbyId
+    setLobbyId(lobbyId)
     myAudioProvider.playIntroSongMusic(true);
     //If join to a lobby previously, it will go there
-    autoRouter(lobbyId);
     return () => {
       myAudioProvider.playIntroSongMusic(false);
     };

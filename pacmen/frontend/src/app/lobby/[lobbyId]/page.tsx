@@ -9,18 +9,13 @@ import { useRouter } from "next/navigation";
 
 import { useCustomQuery, useGameMap, useScoreTracker } from "@/shared/hooks";
 
-import {
-  CollectionName,
-  Lobby,
-  Session,
-  UserSession,
-} from "@/shared/types";
+import { CollectionName, Lobby, Session, UserSession } from "@/shared/types";
 
 import { MapLayout, Button, MembersDisplay } from "@/shared/components";
 
 import { firebaseService } from "@/shared/services";
 
-import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
+import { myAudioProvider } from "@/shared/aux-classes";
 
 const TILE_WIDTH: number = 10;
 const LOADING_LOBBY_TIME: number = 2000;
@@ -33,7 +28,6 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   const { fetchMap, gameMap } = useGameMap();
   const [loading, setLoading] = useState<boolean>(true);
   const [lobby, setLobby] = useState<Lobby | null>(null);
-  const [playerUsername, setPlayerUsername] = useState<string>("");
   //Custom hooks
   const { leaveLobby, createGame } = useCustomQuery();
   const router = useRouter();
@@ -43,16 +37,20 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
   };
 
   const goBackToIntroPage = () => {
-    session.endSession()
+    session.endSession();
+    session.saveInSessionStorage();
     router.push("/");
   };
 
-  const leaveLobbyHandler = () => {
-    leaveLobby({ username: playerUsername, lobbyId: lobby?.id || "" });
+  const leaveLobbyHandler = async () => {
+    await leaveLobby({
+      username: session.getSession().username,
+      lobbyId: session.getSession().lobbyId,
+    });
     goBackToIntroPage();
   };
 
-  const autoRouter = (lobby: Lobby) => {
+  const routerToRoulette = (lobby: Lobby) => {
     router.push(`${lobby.id}/gamePrep/${lobby.gameId}`);
   };
 
@@ -63,16 +61,34 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
     });
     setTimeout(() => {
       setIsClicked(false);
-    },1000);
+    }, 1000);
   };
 
   useEffect(() => {
     if (!lobby) return;
+
     fetchMap(lobby?.mapId);
 
-    if (lobby.gameStarted && lobby.gameId) {
-      session.joinGame(lobby.gameId)
-      autoRouter(lobby);
+    if (!session.getSession().playerId) {
+      const playerId = lobby.members.findIndex(
+        (member) => member.username === session.getSession().username
+      );
+      if (playerId < 0)
+        throw new Error("player not found in the members array");
+      session.setPlayerId(String(playerId+1));
+      session.saveInSessionStorage()
+    }
+
+    //Move to roulette map when game start
+    if (
+      lobby.gameStarted &&
+      lobby.gameId &&
+      session.getSession().lobbyId === lobby.id
+    ) {
+      session.joinGame(lobby.gameId);
+      session.setLobbyHost(lobby.hostUsername);
+      session.saveInSessionStorage();
+      routerToRoulette(lobby);
     }
 
     setTimeout(() => {
@@ -88,24 +104,19 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
       (data: Lobby) => setLobby(data),
       () => errorFn()
     );
-    session.saveInSessionStorage();
 
     //AudioLogic
     myAudioProvider.playIntroSongMusic(true);
 
-    //Load Data from Session Storage
-    // const lobbyId: string = SessionStorage.getValue(
-    //   SessionStorageName.LOBBY_ID
-    // );
-    
-    if (!session.getSession()?.lobbyId || !SessionStorage.getValue("lobbyId")) {
+    if (!session.getSession()?.lobbyId) {
       console.error("Not part of these lobby");
       router.push("/lobby");
       return;
     }
-    const sessionUsername: string = session.getSession()?.username||"";
-    if(!sessionUsername) return router.push("/lobby")
-    setPlayerUsername(sessionUsername);
+
+    const sessionUsername: string = session.getSession().username;
+
+    if (!sessionUsername) return router.push("/lobby");
 
     clearAll();
 
@@ -149,9 +160,9 @@ export default function Page({ params }: { params: { lobbyId: string } }) {
         {!loading && lobby && !lobby.deletedAt ? (
           <div className={styles.lobby_card}>
             <div className={styles.lobby_container}>
-              <MembersDisplay lobby={lobby} currentUsername={playerUsername} />
+              <MembersDisplay lobby={lobby} />
               <div className={styles.btn_container}>
-                {playerUsername === lobby.hostUsername && (
+                {session.getSession().username === lobby.hostUsername && (
                   <Button
                     btnText={!isClick ? `START ROULETTE` : `PREPARING...`}
                     className={`${styles.btn} continue`}

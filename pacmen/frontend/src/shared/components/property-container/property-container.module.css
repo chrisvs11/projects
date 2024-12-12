@@ -30,21 +30,17 @@
 }
 
 .property_btn {
-    transition: 0.2s;
-    font-size: 32px;
+    font-size: 16px;
     font-weight: 1000;
     position: relative;
     bottom: 5px;
-    margin-inline: 10px;
     color: white;
-
 }
 
 .property_btn:hover {
     color: yellow;
     scale: 1.1;
 }
-
 
 .btn {
     font-size: 16px;

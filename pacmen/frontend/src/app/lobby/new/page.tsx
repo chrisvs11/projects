@@ -29,7 +29,7 @@ import { firebaseService } from "@/shared/services";
 
 import { useRouter } from "next/navigation";
 
-import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
+import { myAudioProvider } from "@/shared/aux-classes";
 
 const TILES_WIDTH: number = 10;
 
@@ -84,7 +84,7 @@ export default function LobbyCreationPage() {
       };
       const lobby: Lobby = await createLobby(newLobbyProps);
       session.joinLobby(lobby.id)
-      SessionStorage.setValue("lobbyId",lobby.id)
+      session.saveInSessionStorage()
       router.push(`${lobby.id}`);
     } catch (e) {
       console.error(e);
@@ -184,8 +184,7 @@ export default function LobbyCreationPage() {
                 <Button
                   cKBtn={true}
                   btnText={`${!isClick ? "CREATE LOBBY" : "CREATING..."}`}
-                  disabled = {isClick}
-                  className={`${styles.btn}  continue`}
+                  className={`${styles.btn}  ${isClick ? styles.disabled : ""} continue`}
                   onClick={() => createLobbyHandler()}
                 />
               </div>

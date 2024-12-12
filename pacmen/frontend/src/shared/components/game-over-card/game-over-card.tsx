@@ -3,37 +3,36 @@ import { FC } from "react";
 import { Button, GhostsWinSlider, PacmanWinSlider, TieSlider } from "..";
 
 import styles from "./game-over-card.module.css";
-import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
+import { myAudioProvider } from "@/shared/aux-classes";
 import { useCustomQuery } from "@/shared/hooks";
 import { useRouter } from "next/navigation";
 
-interface GameOverCard {
+interface GameOverCardProps {
   lives: number;
   pacmanScore: number;
   ghostScore: number;
+  lobbyId:string;
+  username:string;
 }
 
-export const GameOverCard: FC<GameOverCard> = ({
+export const GameOverCard: FC<GameOverCardProps> = ({
   lives,
   pacmanScore,
   ghostScore,
+  username,
+  lobbyId
 }) => {
   const { leaveLobby } = useCustomQuery();
   const router = useRouter();
 
   const exitHandler = async () => {
-    const lobbyId: string = SessionStorage.getValue("lobbyId");
-    const username: string = SessionStorage.getValue("username");
-    if (!username || !lobbyId) return;
     try {
       await leaveLobby({
         username,
         lobbyId,
       });
-      SessionStorage.eliminateValue("lobbyId")
-      SessionStorage.eliminateValue("gameId")
       myAudioProvider.stopAllMusic();
-      router.push("/");
+      router.push("/lobby");
     } catch (e) {
       console.error("Error exiting...");
     }
@@ -41,7 +40,6 @@ export const GameOverCard: FC<GameOverCard> = ({
 
   const restartHandler = () => {
     try {
-        const lobbyId: string = SessionStorage.getValue("lobbyId");
         router.push(`/lobby/${lobbyId}`);
     } catch (e) {
         console.error(e)

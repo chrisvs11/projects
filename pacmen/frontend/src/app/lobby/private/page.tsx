@@ -16,22 +16,27 @@ import * as Yup from "yup";
 
 import styles from "./privatePage.module.css";
 
-import { Lobby, CollectionName, GhostTypes, Direction } from "@/shared/types";
+import {
+  Lobby,
+  CollectionName,
+  GhostTypes,
+  Direction,
+  Session,
+  UserSession,
+} from "@/shared/types";
 
 import { useRouter } from "next/navigation";
 
 import { firebaseService } from "@/shared/services";
 
-import { myAudioProvider, SessionStorage } from "@/shared/aux-classes";
-
+import { myAudioProvider } from "@/shared/aux-classes";
 interface FormValues {
   code: string;
 }
-
+const session: Session = UserSession.getInstance();
 const initialValues: FormValues = {
   code: "",
 };
-
 const validationSchema = Yup.object<FormValues>().shape({
   code: Yup.string()
     .min(6, "Code are 6 digits long")
@@ -41,11 +46,11 @@ const validationSchema = Yup.object<FormValues>().shape({
 
 export default function PrivatePage() {
   const [incorrectPassword, setIncorrectPassword] = useState<boolean>(false);
-  const [lobbyId, setLobbyId] = useState<string>("")
+  const [lobbyId, setLobbyId] = useState<string>()
   const router = useRouter();
 
   const cancelHandler = () => {
-    SessionStorage.setValue("lobbyId", "");
+    session.leaveLobby();
     router.push("/lobby");
   };
 
@@ -56,6 +61,7 @@ export default function PrivatePage() {
         "code",
         password.toLocaleUpperCase()
       );
+
       if (lobby && lobby.members.length < lobby.maxPlayers) {
         return lobby.id;
       }
@@ -69,12 +75,13 @@ export default function PrivatePage() {
   const onSubmit = useCallback(
     async (values: FormValues) => {
       const selectedLobbyId: string | null = await checkPassword(values.code);
-      if(!selectedLobbyId) return null
-
+      if (!selectedLobbyId) return null;
       setIncorrectPassword(false);
       setLobbyId(selectedLobbyId)
+      session.joinLobby(selectedLobbyId)
+      session.saveInSessionStorage()
     },
-    [checkPassword]
+    []
   );
 
   const { values, errors, touched, handleSubmit, handleChange } =
@@ -84,17 +91,15 @@ export default function PrivatePage() {
       onSubmit,
     });
 
-  useEffect(() => {
-    SessionStorage.setValue("lobbyId",lobbyId)
-  },[lobbyId])
+
 
   useEffect(() => {
-    myAudioProvider.playIntroSongMusic(true)
+    myAudioProvider.playIntroSongMusic(true);
 
-    return ( () => {
-      myAudioProvider.playIntroSongMusic(false)
-    })
-  },[])
+    return () => {
+      myAudioProvider.playIntroSongMusic(false);
+    };
+  }, []);
 
   return (
     <div className="body">
@@ -140,7 +145,6 @@ export default function PrivatePage() {
                     direction={Direction.LEFT}
                   />
                 </div>
-
                 <GhostSprite
                   state={0}
                   type={GhostTypes.BLINKY}
