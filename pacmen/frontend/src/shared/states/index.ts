@@ -1,6 +1,0 @@
-export * from "./playerId.state"
-export * from "./game-map.state"
-export * from "./audio-vol.state"
-export * from "./logout-timer.state"
-export * from "./scores.state"
-export * from "./pellets.state"
